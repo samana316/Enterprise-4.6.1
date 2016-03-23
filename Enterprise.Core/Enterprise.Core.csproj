@@ -1,0 +1,146 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{5B2DE633-F596-4B3C-9A1E-35E018DDCFA9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Enterprise.Core</RootNamespace>
+    <AssemblyName>Enterprise.Core</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Transactions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Common\Clock.cs" />
+    <Compile Include="Common\Collections\Extensions\CollectionExtensions.cs" />
+    <Compile Include="Common\Collections\Extensions\EnumerableExtensions.cs" />
+    <Compile Include="Common\DisposableBase.cs" />
+    <Compile Include="Common\Formatting\Formatter.cs" />
+    <Compile Include="Common\INotifyUnhandledException.cs" />
+    <Compile Include="Common\NotifyUnhandledException.cs" />
+    <Compile Include="Common\ObservableBase.cs" />
+    <Compile Include="Common\Runtime\CompilerServices\IAwaitable.cs" />
+    <Compile Include="Common\Runtime\CompilerServices\IAwaiter.cs" />
+    <Compile Include="Common\Specifications\ISpecification.cs" />
+    <Compile Include="Common\Specifications\Specification.And.cs" />
+    <Compile Include="Common\Specifications\Specification.Create.cs" />
+    <Compile Include="Common\Specifications\Specification.Negate.cs" />
+    <Compile Include="Common\Specifications\Specification.Or.cs" />
+    <Compile Include="Common\Threading\PauseToken.cs" />
+    <Compile Include="Common\Threading\PauseTokenSource.cs" />
+    <Compile Include="Common\Threading\Tasks\TaskHelpers.cs" />
+    <Compile Include="IO\AsyncFile.AppendAllLinesAsync.cs" />
+    <Compile Include="IO\AsyncFile.AppendAllTextAsync.cs" />
+    <Compile Include="IO\AsyncFile.CopyAsync.cs" />
+    <Compile Include="IO\AsyncFile.WriteAllTextAsync.cs" />
+    <Compile Include="IO\AsyncFile.Implementation.cs" />
+    <Compile Include="IO\AsyncFile.ReadAllBytesAsync.cs" />
+    <Compile Include="IO\AsyncFile.ReadAllLinesAsync.cs" />
+    <Compile Include="IO\AsyncFile.ReadAllTextAsync.cs" />
+    <Compile Include="IO\AsyncFile.ReadLines.cs" />
+    <Compile Include="IO\AsyncFile.WriteAllBytesAsync.cs" />
+    <Compile Include="IO\AsyncFile.WriteAllLinesAsync.cs" />
+    <Compile Include="IO\AsyncIterator.cs" />
+    <Compile Include="IO\ReadAsyncIterator.cs" />
+    <Compile Include="IO\ReadLinesAsyncIterator.cs" />
+    <Compile Include="Linq\AsyncEnumerable.AggregateAsync.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Concat.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Conversions.cs" />
+    <Compile Include="Linq\AsyncEnumerable.AsyncIterator.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Create.cs" />
+    <Compile Include="Linq\AsyncEnumerable.GroupBy.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Joins.cs" />
+    <Compile Include="Linq\AsyncEnumerable.PagingOperations.cs" />
+    <Compile Include="Linq\AsyncEnumerable.SeekOperations.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Empty.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Generated.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Repeat.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Select.cs" />
+    <Compile Include="Linq\AsyncEnumerable.SelectMany.cs" />
+    <Compile Include="Linq\AsyncEnumerable.SequenceEqualAsync.cs" />
+    <Compile Include="Linq\AsyncEnumerable.SetOperations.cs" />
+    <Compile Include="Linq\AsyncEnumerable.SortOperations.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Where.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Zip.cs" />
+    <Compile Include="Linq\AsyncEnumerator.cs" />
+    <Compile Include="Linq\AsyncGroupedEnumerable.cs" />
+    <Compile Include="Linq\AsyncLookup.AsyncGrouping.cs" />
+    <Compile Include="Linq\AsyncLookup.AsyncGrouping.Generated.cs" />
+    <Compile Include="Linq\AsyncLookup.cs" />
+    <Compile Include="Linq\AsyncLookup.Generated.cs" />
+    <Compile Include="Linq\AsyncOrderedEnumerable.cs" />
+    <Compile Include="Linq\AsyncYielder.cs" />
+    <Compile Include="Linq\EnumerableSorter.Generated.cs" />
+    <Compile Include="Linq\IAsyncEnumerable.cs" />
+    <Compile Include="Linq\IAsyncEnumerator.cs" />
+    <Compile Include="Linq\AsyncEnumerable.Range.cs" />
+    <Compile Include="Linq\IAsyncGrouping.cs" />
+    <Compile Include="Linq\IAsyncLookup.cs" />
+    <Compile Include="Linq\IAsyncOrderedEnumerable.cs" />
+    <Compile Include="Linq\IAsyncYielder.cs" />
+    <Compile Include="Linq\Providers\AsyncEnumerableQuery.cs" />
+    <Compile Include="Linq\Providers\AsyncQueryProviderExtensions.cs" />
+    <Compile Include="Linq\Providers\IAsyncQueryProvider.cs" />
+    <Compile Include="Linq\Providers\QueryableExtensions.cs" />
+    <Compile Include="Linq\Providers\QueryableExtensions.Generated.cs" />
+    <Compile Include="Linq\Set.Generated.cs" />
+    <Compile Include="Logging\ILogConfiguration.cs" />
+    <Compile Include="Logging\ILogWriter.cs" />
+    <Compile Include="Logging\LogEntry.cs" />
+    <Compile Include="Logging\Logger.cs" />
+    <Compile Include="Logging\Logging.cs" />
+    <Compile Include="Logging\LoggingSettings.cs" />
+    <Compile Include="Logging\Severity.cs" />
+    <Compile Include="ObjectCreations\IFactory.cs" />
+    <Compile Include="ObjectCreations\IPrototype.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Resources\Error.cs" />
+    <Compile Include="Serialization\Serializer.cs" />
+    <Compile Include="Transactions\CommandEnlistment.cs" />
+    <Compile Include="Transactions\ICommand.cs" />
+    <Compile Include="Transactions\IInvoker.cs" />
+    <Compile Include="Transactions\TransactionalInvoker.cs" />
+    <Compile Include="Utilities\Check.cs" />
+    <Compile Include="Utilities\DebugCheck.cs" />
+    <Compile Include="Utilities\TaskExtensions.cs" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
