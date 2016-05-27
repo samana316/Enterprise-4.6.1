@@ -39,6 +39,7 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -64,6 +65,7 @@
     <Compile Include="Linq\CreateUnitTest.cs" />
     <Compile Include="Linq\GroupByUnitTest.cs" />
     <Compile Include="Linq\Helpers\DataReaderAdapter.cs" />
+    <Compile Include="Linq\Helpers\RemoteAsyncIterator.cs" />
     <Compile Include="Linq\Helpers\StreamAdapter.cs" />
     <Compile Include="Linq\IntegrationTest.cs" />
     <Compile Include="Linq\JoinsUnitTest.cs" />
@@ -76,6 +78,7 @@
     <Compile Include="Linq\SetOperationsUnitTest.cs" />
     <Compile Include="Linq\TestDomain\Models.cs" />
     <Compile Include="Linq\TestDomain\School.cs" />
+    <Compile Include="Linq\WcfIntegrationTest.cs" />
     <Compile Include="Linq\WhereSelectUnitTest.cs" />
     <Compile Include="Logging\LoggerTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -94,6 +97,10 @@
     <ProjectReference Include="..\Enterprise.Core\Enterprise.Core.csproj">
       <Project>{5b2de633-f596-4b3c-9a1e-35e018ddcfa9}</Project>
       <Name>Enterprise.Core</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\TestWcf\TestWcf.csproj">
+      <Project>{9a37f383-0c2c-4e87-b47d-99e496763c4d}</Project>
+      <Name>TestWcf</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup />

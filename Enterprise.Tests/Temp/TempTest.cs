@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -21,11 +22,9 @@ namespace Enterprise.Tests.Temp
         {
             try
             {
-                var query = new EnumerableQuery<int>(Enumerable.Range(1, 5));
+                var query = TestIterator();
 
-                var sum = query.Sum();
-
-
+                Trace.WriteLine(query);
             }
             catch (Exception exception)
             {
@@ -33,6 +32,11 @@ namespace Enterprise.Tests.Temp
 
                 Assert.Fail(exception.Message);
             }
+        }
+
+        private IEnumerable<int> TestIterator()
+        {
+            yield return 1;
         }
     }
 }

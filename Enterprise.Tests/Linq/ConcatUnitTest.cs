@@ -56,27 +56,29 @@ namespace Enterprise.Tests.Linq
                     where item % 2 != 0
                     select Convert.ToDecimal(item) + 0.5m;
 
-                var cts = new CancellationTokenSource();
-                cts.CancelAfter(10000);
+                using (var cts = new CancellationTokenSource())
+                {
+                    cts.CancelAfter(10000);
 
-                var cancellationToken = cts.Token;
-                await result.ForEachAsync(
-                    item => Trace.WriteLine(item, "MoveNextAsync"), cancellationToken);
+                    var cancellationToken = cts.Token;
+                    await result.ForEachAsync(
+                        item => Trace.WriteLine(item, "MoveNextAsync"), cancellationToken);
 
-                var expected = new[] { 1.5m, 3.5m, 5.5m, 7.5m, 9.5m };
+                    var expected = new[] { 1.5m, 3.5m, 5.5m, 7.5m, 9.5m };
 
-                Assert.IsTrue(await result.SequenceEqualAsync(expected, cancellationToken));
+                    Assert.IsTrue(await result.SequenceEqualAsync(expected, cancellationToken));
 
-                var count = await result.CountAsync(cancellationToken);
-                Trace.WriteLine(count, "CountAsync");
-                Assert.AreEqual(expected.Count(), count);
+                    var count = await result.CountAsync(cancellationToken);
+                    Trace.WriteLine(count, "CountAsync");
+                    Assert.AreEqual(expected.Count(), count);
 
-                var sum = await result.SumAsync(cancellationToken);
-                Trace.WriteLine(sum, "SumAsync");
+                    var sum = await result.SumAsync(cancellationToken);
+                    Trace.WriteLine(sum, "SumAsync");
 
-                var average = await result.AverageAsync(cancellationToken);
-                Trace.Write(average, "AverageAsync");
-                Assert.AreEqual(sum / count, average);
+                    var average = await result.AverageAsync(cancellationToken);
+                    Trace.Write(average, "AverageAsync");
+                    Assert.AreEqual(sum / count, average);
+                }
             }
             catch (Exception exception)
             {

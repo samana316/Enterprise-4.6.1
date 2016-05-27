@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Enterprise.Core.Utilities;
 
 namespace Enterprise.Core.Common.Threading.Tasks
 {
@@ -24,6 +26,33 @@ namespace Enterprise.Core.Common.Threading.Tasks
         {
             var taskCompletionSource = new TaskCompletionSource<TResult>();
             taskCompletionSource.SetException(exception);
+
+            return taskCompletionSource.Task;
+        }
+
+        internal static async void EndInvoke(
+            IAsyncResult asyncResult)
+        {
+            if (!ReferenceEquals(asyncResult, null) &&
+                !ReferenceEquals(asyncResult.AsyncWaitHandle, null))
+            {
+                await asyncResult.AsyncWaitHandle.ToTask();
+            }
+        }
+
+        internal static Task ToTask(
+            this WaitHandle waitHandle)
+        {
+            Check.NotNull(waitHandle, "waitHandle");
+
+            var taskCompletionSource = new TaskCompletionSource<object>();
+
+            ThreadPool.RegisterWaitForSingleObject(
+                waitObject: waitHandle,
+                callBack: (o, timeout) => { taskCompletionSource.SetResult(null); },
+                state: null,
+                timeout: TimeSpan.MaxValue,
+                executeOnlyOnce: true);
 
             return taskCompletionSource.Task;
         }

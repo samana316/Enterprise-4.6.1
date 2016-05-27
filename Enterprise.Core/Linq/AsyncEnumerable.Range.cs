@@ -48,6 +48,11 @@ namespace Enterprise.Core.Linq
                 return new RangeAsyncIterator(this.start, this.count);
             }
 
+            public override void Reset()
+            {
+                this.currentIndex = -1;
+            }
+
             protected override Task<bool> DoMoveNextAsync(
                 CancellationToken cancellationToken)
             {

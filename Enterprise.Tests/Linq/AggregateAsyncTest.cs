@@ -48,18 +48,20 @@ namespace Enterprise.Tests.Linq
         {
             try
             {
-                var cts = new CancellationTokenSource();
-                cts.CancelAfter(5000);
+                using (var cts = new CancellationTokenSource())
+                {
+                    cts.CancelAfter(5000);
 
-                var cancellationToken = cts.Token;
-                var source = StreamAdapter.Create(this.CreateFileStream);
+                    var cancellationToken = cts.Token;
+                    var source = StreamAdapter.Create(this.CreateFileStream);
 
-                await source.ForEachAsync(item => Trace.WriteLine(item, "MoveNextAsync"), cancellationToken);
+                    await source.ForEachAsync(item => Trace.WriteLine(item, "MoveNextAsync"), cancellationToken);
 
-                var result = await source.AggregateAsync((x, y) => x + y, cancellationToken);
-                Trace.WriteLine(result, "AggregateAsync");
+                    var result = await source.AggregateAsync((x, y) => x + y, cancellationToken);
+                    Trace.WriteLine(result, "AggregateAsync");
 
-                Assert.AreEqual("ABCDEFG", result);
+                    Assert.AreEqual("ABCDEFG", result);
+                }
             }
             catch (Exception exception)
             {

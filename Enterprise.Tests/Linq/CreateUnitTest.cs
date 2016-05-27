@@ -162,31 +162,33 @@ namespace Enterprise.Tests.Linq
         {
             try
             {
-                var cancelSource = new CancellationTokenSource();
-                cancelSource.CancelAfter(TimeSpan.FromMilliseconds(1000));
-
-                var cancellationToken = cancelSource.Token;
-
-                var source = AsyncEnumerable.Create<int>(async (y, ct) =>
+                using (var cancelSource = new CancellationTokenSource())
                 {
-                    for (var i = 1; i <= 9; i++)
+                    cancelSource.CancelAfter(TimeSpan.FromMilliseconds(1000));
+
+                    var cancellationToken = cancelSource.Token;
+
+                    var source = AsyncEnumerable.Create<int>(async (y, ct) =>
                     {
-                        await y.ReturnAsync(i, ct);
-                    }
-                });
+                        for (var i = 1; i <= 9; i++)
+                        {
+                            await y.ReturnAsync(i, ct);
+                        }
+                    });
 
-                var result =
-                    from x in source
-                    where x % 2 == 0
-                    select new int?(x);
+                    var result =
+                        from x in source
+                        where x % 2 == 0
+                        select new int?(x);
 
-                Assert.IsNotNull(result);
+                    Assert.IsNotNull(result);
 
-                await result.ForEachAsync(item => Trace.WriteLine(item, "MoveNextAsync"));
-                Assert.AreEqual(4, await result.CountAsync(cancellationToken));
+                    await result.ForEachAsync(item => Trace.WriteLine(item, "MoveNextAsync"));
+                    Assert.AreEqual(4, await result.CountAsync(cancellationToken));
 
-                var expected = new int?[] { 2, 4, 6, 8 };
-                Assert.IsTrue(await result.SequenceEqualAsync(expected, cancellationToken));
+                    var expected = new int?[] { 2, 4, 6, 8 };
+                    Assert.IsTrue(await result.SequenceEqualAsync(expected, cancellationToken));
+                }
             }
             catch (Exception exception)
             {

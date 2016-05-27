@@ -32,6 +32,8 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
+    <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
@@ -56,6 +58,7 @@
     <Compile Include="Common\Specifications\Specification.Create.cs" />
     <Compile Include="Common\Specifications\Specification.Negate.cs" />
     <Compile Include="Common\Specifications\Specification.Or.cs" />
+    <Compile Include="Common\Threading\AsyncLock.cs" />
     <Compile Include="Common\Threading\PauseToken.cs" />
     <Compile Include="Common\Threading\PauseTokenSource.cs" />
     <Compile Include="Common\Threading\Tasks\TaskHelpers.cs" />
@@ -126,6 +129,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Resources\Error.cs" />
     <Compile Include="Serialization\Serializer.cs" />
+    <Compile Include="Common\ServiceModel\CommunicationObjectExtensions.cs" />
     <Compile Include="Transactions\CommandEnlistment.cs" />
     <Compile Include="Transactions\ICommand.cs" />
     <Compile Include="Transactions\IInvoker.cs" />
