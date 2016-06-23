@@ -10,6 +10,7 @@ namespace Enterprise.Tests.Temp
     [TestClass]
     public sealed class ObservableTest
     {
+        [Obsolete]
         [TestMethod]
         [TestCategory("Temp")]
         [Timeout(10000)]
@@ -32,6 +33,7 @@ namespace Enterprise.Tests.Temp
             }
         }
 
+        [Obsolete]
         private class TempSource : ObservableBase<int>
         {
             public async Task StartAsync(
@@ -43,9 +45,9 @@ namespace Enterprise.Tests.Temp
                     {
                         cancellationToken.ThrowIfCancellationRequested();
 
-                        await Task.Delay(100);
+                        //await Task.Delay(100);
 
-                        this.OnNext(i);
+                        await Task.Run(() => this.OnNext(i), cancellationToken);
                     }
                     catch (Exception exception)
                     {
@@ -61,6 +63,7 @@ namespace Enterprise.Tests.Temp
         {
             public async void OnCompleted()
             {
+                await Task.Delay(2);
                 await Console.Out.WriteLineAsync("OnCompleted");
             }
 
@@ -73,6 +76,7 @@ namespace Enterprise.Tests.Temp
             public async void OnNext(
                 T value)
             {
+                await Task.Delay(5);
                 await Console.Out.WriteLineAsync("OnNext: " + value);
             }
         }

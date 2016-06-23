@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Common;
-using Enterprise.Core.Common.Threading.Tasks;
 using Enterprise.Core.ObjectCreations;
 
 namespace Enterprise.Core.Linq
@@ -45,7 +44,7 @@ namespace Enterprise.Core.Linq
                 return this.MoveNextAsync(CancellationToken.None).Result;
             }
 
-            public Task<bool> MoveNextAsync(
+            public async Task<bool> MoveNextAsync(
                 CancellationToken cancellationToken)
             {
                 cancellationToken.ThrowIfCancellationRequested();
@@ -58,10 +57,10 @@ namespace Enterprise.Core.Linq
                     case 2:
                         break;
                     default:
-                        return TaskHelpers.Constant(false);
+                        return false;
                 }
 
-                return this.DoMoveNextAsync(cancellationToken);
+                return await this.DoMoveNextAsync(cancellationToken);
             }
 
             public virtual void Reset()

@@ -13,6 +13,5 @@ namespace Enterprise.Core.Linq
 
     public interface IAsyncEnumerator<out T> : IAsyncEnumerator, IEnumerator<T>
     {
-        //new T Current { get; }
     }
 }

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Enterprise.Core.Common.Collections.Extensions;
 using Enterprise.Core.Linq;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 
 namespace Enterprise.Tests.Linq
 {
@@ -277,6 +278,67 @@ namespace Enterprise.Tests.Linq
                 expected.ForEach(item => Trace.WriteLine(item, "MoveNext"));
 
                 Assert.IsTrue(await result.SequenceEqualAsync(expected, cancelSource.Token));
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq")]
+        [TestCategory("Create")]
+        [TestCategory("Unit")]
+        [Timeout(30000)]
+        public async Task CreateTimer()
+        {
+            try
+            {
+                var timer = AsyncEnumerable.Create<DateTime>(async (yielder, cancellationToken) => 
+                {
+                    while (true)
+                    {
+                        await Task.Delay(1000, cancellationToken);
+                        await yielder.ReturnAsync(DateTime.Now, cancellationToken);
+                    }
+                });
+
+                await timer.Take(3).ForEachAsync(x => Trace.WriteLine(x));
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq")]
+        [TestCategory("Create")]
+        [TestCategory("Unit")]
+        [Timeout(30000)]
+        public void CreateAndSerialize()
+        {
+            try
+            {
+                var source = AsyncEnumerable.Create<int>(async (y, ct) =>
+                {
+                    for (var i = 1; i <= 9; i++)
+                    {
+                        await y.ReturnAsync(i, ct);
+                    }
+                });
+
+                var result =
+                    from x in source
+                    where x % 2 == 0
+                    select new int?(x);
+
+                Trace.WriteLine(
+                    JsonConvert.SerializeObject(result));
             }
             catch (Exception exception)
             {

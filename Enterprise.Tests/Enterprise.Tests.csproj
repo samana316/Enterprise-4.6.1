@@ -36,6 +36,15 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="Newtonsoft.Json, Version=8.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <HintPath>..\packages\Newtonsoft.Json.8.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
@@ -63,6 +72,7 @@
     <Compile Include="Linq\CompareLinqMethods.cs" />
     <Compile Include="Linq\ConcatUnitTest.cs" />
     <Compile Include="Linq\CreateUnitTest.cs" />
+    <Compile Include="Linq\ForEachAsyncTest.cs" />
     <Compile Include="Linq\GroupByUnitTest.cs" />
     <Compile Include="Linq\Helpers\DataReaderAdapter.cs" />
     <Compile Include="Linq\Helpers\RemoteAsyncIterator.cs" />
@@ -73,6 +83,14 @@
     <Compile Include="Linq\Providers\AsyncEnumerableQueryTest.cs" />
     <Compile Include="Linq\Providers\IntegrationTest.cs" />
     <Compile Include="Linq\RangeUnitTest.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservablePoc.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservableTest.cs" />
+    <Compile Include="Linq\Reactive\ConcatUnitTest.cs" />
+    <Compile Include="Linq\Reactive\Helpers\DataReaderObservable.cs" />
+    <Compile Include="Linq\Reactive\Helpers\TestAsyncObserver.cs" />
+    <Compile Include="Linq\Reactive\PagingOperationsUnitTest.cs" />
+    <Compile Include="Linq\Reactive\SelectManyUnitTest.cs" />
+    <Compile Include="Linq\Reactive\SetOperationsUnitTest.cs" />
     <Compile Include="Linq\RepeatUnitTest.cs" />
     <Compile Include="Linq\SelectManyUnitTest.cs" />
     <Compile Include="Linq\SetOperationsUnitTest.cs" />
@@ -102,6 +120,9 @@
       <Project>{9a37f383-0c2c-4e87-b47d-99e496763c4d}</Project>
       <Name>TestWcf</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
   <Choose>

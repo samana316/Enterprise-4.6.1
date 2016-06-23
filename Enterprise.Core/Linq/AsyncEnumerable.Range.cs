@@ -1,5 +1,7 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
+using Enterprise.Core.Common.Threading.Tasks;
 using Enterprise.Core.Resources;
 
 namespace Enterprise.Core.Linq
@@ -56,13 +58,17 @@ namespace Enterprise.Core.Linq
             protected override Task<bool> DoMoveNextAsync(
                 CancellationToken cancellationToken)
             {
+                Func<bool> func = this.InternalMoveNext;
+
+                return func.InvokeAsync(cancellationToken);
+            }
+
+            private bool InternalMoveNext()
+            {
                 this.currentIndex++;
                 this.current = this.start + this.currentIndex;
 
-                var taskCompletionSource = new TaskCompletionSource<bool>();
-                taskCompletionSource.SetResult(this.currentIndex < this.count);
-
-                return taskCompletionSource.Task;
+                return this.currentIndex < this.count;
             }
         }
     }

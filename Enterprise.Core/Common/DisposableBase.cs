@@ -5,6 +5,8 @@ namespace Enterprise.Core.Common
     [Serializable]
 	public abstract class DisposableBase : IDisposable
 	{
+        private readonly object sink = new object();
+
 		~DisposableBase()
 		{
 			this.Dispose(false);
@@ -12,7 +14,11 @@ namespace Enterprise.Core.Common
 
 		public void Dispose()
 		{
-			this.Dispose(true);
+            lock (sink)
+            {
+                this.Dispose(true);
+            }
+
 			GC.SuppressFinalize(this);
 		}
 

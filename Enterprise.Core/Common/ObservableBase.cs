@@ -5,6 +5,7 @@ using System.Linq;
 namespace Enterprise.Core.Common
 {
     [Serializable]
+    [Obsolete]
 	public abstract class ObservableBase<T> : DisposableBase, IObservable<T>
 	{
 		private readonly ICollection<IObserver<T>> observers = new List<IObserver<T>>();

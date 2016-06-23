@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.Remoting.Messaging;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Utilities;
@@ -10,10 +11,9 @@ namespace Enterprise.Core.Common.Threading.Tasks
         public static Task<TResult> Constant<TResult>(
             TResult result)
         {
-            var taskCompletionSource = new TaskCompletionSource<TResult>();
-            taskCompletionSource.SetResult(result);
+            Func<TResult> func = () => result;
 
-            return taskCompletionSource.Task;
+            return func.InvokeAsync(CancellationToken.None);
         }
 
         public static Task Empty()
@@ -21,7 +21,7 @@ namespace Enterprise.Core.Common.Threading.Tasks
             return Task.FromResult<object>(null);
         }
 
-        public static Task<TResult> Throw<TResult>(
+        public static Task<TResult> ThrowAsync<TResult>(
             Exception exception)
         {
             var taskCompletionSource = new TaskCompletionSource<TResult>();
@@ -38,6 +38,66 @@ namespace Enterprise.Core.Common.Threading.Tasks
             {
                 await asyncResult.AsyncWaitHandle.ToTask();
             }
+        }
+
+        internal static Task InvokeAsync(
+            this Action action,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Check.NotNull(action, "action");
+
+            var taskCompletionSource = new TaskCompletionSource<object>();
+            var callback = new AsyncCallback(result =>
+            {
+                try
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    action.EndInvoke(result);
+
+                    taskCompletionSource.SetResult(null);
+                }
+                catch (Exception exception)
+                {
+                    taskCompletionSource.SetException(exception);
+                }
+            });
+
+            action.BeginInvoke(callback, null);
+
+            return taskCompletionSource.Task;
+        }
+
+        internal static Task<TResult> InvokeAsync<TResult>(
+            this Func<TResult> func,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Check.NotNull(func, "func");
+
+            var taskCompletionSource = new TaskCompletionSource<TResult>();
+            var callback = new AsyncCallback(result =>
+            {
+                try
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var returnValue = func.EndInvoke(result);
+
+                    taskCompletionSource.SetResult(returnValue);
+                }
+                catch (Exception exception)
+                {
+                    taskCompletionSource.SetException(exception);
+                }
+            });
+
+            func.BeginInvoke(callback, null);
+
+            return taskCompletionSource.Task;
         }
 
         internal static Task ToTask(

@@ -119,6 +119,13 @@ namespace Enterprise.Core.Linq
             protected override Task<bool> DoMoveNextAsync(
                 CancellationToken cancellationToken)
             {
+                Func<bool> func = this.InternalMoveNext;
+
+                return func.InvokeAsync(cancellationToken);
+            }
+
+            private bool InternalMoveNext()
+            {
                 if (this.sourceEnumerator == null)
                 {
                     this.sourceEnumerator = this.source.GetEnumerator();
@@ -126,13 +133,12 @@ namespace Enterprise.Core.Linq
 
                 if (this.sourceEnumerator.MoveNext())
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
                     this.current = this.sourceEnumerator.Current;
 
-                    return TaskHelpers.Constant(true);
+                    return true;
                 }
 
-                return TaskHelpers.Constant(false);
+                return false;
             }
         }
 

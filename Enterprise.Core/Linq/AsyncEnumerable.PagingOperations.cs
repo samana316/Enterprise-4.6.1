@@ -242,7 +242,7 @@ namespace Enterprise.Core.Linq
                     {
                         this.current = this.enumerator.Current;
 
-                        if (--this.currentCount == -1)
+                        if (--this.currentCount <= -1)
                         {
                             return false;
                         }

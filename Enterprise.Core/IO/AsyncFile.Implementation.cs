@@ -161,13 +161,13 @@ namespace Enterprise.Core.IO
                 }
             }
 
-            private async Task WriteLinesAsyncIterator(
+            private Task WriteLinesAsyncIterator(
                 IEnumerable<string> contents,
                 Encoding encoding,
                 CancellationToken cancellationToken,
                 FileStream stream)
             {
-                await contents.AsAsyncEnumerable().ForEachAsync(async content =>
+                return contents.AsAsyncEnumerable().ForEachAsync(async content =>
                 {
                     var lineBreak = encoding.GetBytes(Environment.NewLine);
                     await stream.WriteAsync(lineBreak, 0, lineBreak.Length, cancellationToken);

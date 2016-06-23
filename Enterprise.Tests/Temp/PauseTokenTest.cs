@@ -72,7 +72,7 @@ namespace Enterprise.Tests.Temp
             for (int i = 0; i < 10; i++)
             {
                 Trace.WriteLine(i);
-                //await Task.Delay(10);
+                await Task.Delay(TimeSpan.FromMilliseconds(1));
                 await pauseToken.WaitWhilePausedAsync();
             }
         }
