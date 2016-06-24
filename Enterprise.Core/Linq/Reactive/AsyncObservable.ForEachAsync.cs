@@ -69,7 +69,7 @@ namespace Enterprise.Core.Linq.Reactive
             return source.ForEachAsync(onNextAsync, CancellationToken.None);
         }
 
-        public static async Task ForEachAsync<TSource>(
+        public static Task ForEachAsync<TSource>(
             this IAsyncObservable<TSource> source,
             Func<TSource, int, CancellationToken, Task> onNextAsync,
             CancellationToken cancellationToken)
@@ -80,7 +80,8 @@ namespace Enterprise.Core.Linq.Reactive
             Check.NotNull(onNextAsync, "onNextAsync");
 
             var observer = new ForEachAsyncObserver<TSource>(onNextAsync);
-            using (await source.SubscribeSafeAsync(observer, cancellationToken)) { }
+
+            return source.SubscribeAsync(observer, cancellationToken);
         }
 
         private sealed class ForEachAsyncObserver<TSource> : AsyncObserverBase<TSource>

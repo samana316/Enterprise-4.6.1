@@ -1,16 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
 using System.Diagnostics;
-using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Common;
-using Enterprise.Core.Common.Threading.Tasks;
-using Enterprise.Core.Linq;
-using Enterprise.Core.Linq.Providers;
 using Enterprise.Core.Linq.Reactive;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

@@ -4,30 +4,34 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Linq;
+using Enterprise.Core.Linq.Reactive;
 using Enterprise.Tests.Linq.TestDomain;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Enterprise.Tests.Linq
+namespace Enterprise.Tests.Linq.Reactive
 {
     [TestClass]
     public sealed class GroupByUnitTest
     {
+        private readonly School school = new School();
+
         [TestMethod]
-        [TestCategory("Linq")]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("GroupBy")]
         [TestCategory("Unit")]
-        [Timeout(30000)]
+        [Timeout(5000)]
         public async Task GroupBySingleProperty()
         {
             try
             {
-                Trace.WriteLine("Group by a single property in an object:");
-                var students = new School().Students;
+                Console.WriteLine("Group by a single property in an object:");
+
+                var students = school.Students;
+                var observable = school.ObservableStudents;
 
                 var queryLastNames =
-                    from student in students
+                    from student in observable
                     group student by student.LastName into newGroup
-                    orderby newGroup.Key
                     select newGroup;
 
                 var count = await this.VerifyGroupingsAsync(queryLastNames);
@@ -43,19 +47,21 @@ namespace Enterprise.Tests.Linq
         }
 
         [TestMethod]
-        [TestCategory("Linq")]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("GroupBy")]
         [TestCategory("Unit")]
-        [Timeout(30000)]
+        [Timeout(5000)]
         public async Task GroupBySingleExpression()
         {
             try
             {
-                Trace.WriteLine("Group by something other than a property of the object:");
-                var students = new School().Students;
+                Console.WriteLine("Group by something other than a property of the object:");
+
+                var students = school.Students;
+                var observable = school.ObservableStudents;
 
                 var queryFirstLetters =
-                    from student in students
+                    from student in observable
                     group student by student.LastName[0];
 
                 var count = await this.VerifyGroupingsAsync(queryFirstLetters);
@@ -71,22 +77,23 @@ namespace Enterprise.Tests.Linq
         }
 
         [TestMethod]
-        [TestCategory("Linq")]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("GroupBy")]
         [TestCategory("Unit")]
-        [Timeout(30000)]
+        [Timeout(5000)]
         public async Task GroupByNumericRange()
         {
             try
             {
-                Trace.WriteLine("Group by numeric range and project into a new anonymous type:");
-                var students = new School().Students;
+                Console.WriteLine("Group by numeric range and project into a new anonymous type:");
+
+                var students = school.Students;
+                var observable = school.ObservableStudents;
 
                 var queryNumericRange =
-                    from student in students
+                    from student in observable
                     let percentile = GetPercentile(student)
                     group new { student.FirstName, student.LastName } by percentile into percentGroup
-                    orderby percentGroup.Key
                     select percentGroup;
 
                 var count = await this.VerifyGroupingsAsync(queryNumericRange);
@@ -102,19 +109,21 @@ namespace Enterprise.Tests.Linq
         }
 
         [TestMethod]
-        [TestCategory("Linq")]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("GroupBy")]
         [TestCategory("Unit")]
-        [Timeout(30000)]
+        [Timeout(5000)]
         public async Task GroupByAggregate()
         {
             try
             {
-                Trace.WriteLine("Group by a Boolean into two groups with string keys:");
-                var students = new School().Students;
+                Console.WriteLine("Group by a Boolean into two groups with string keys:");
 
-                var queryGroupByAverages = 
-                    from student in students
+                var students = school.Students;
+                var observable = school.ObservableStudents;
+
+                var queryGroupByAverages =
+                    from student in observable
                     group new { student.FirstName, student.LastName }
                         by student.ExamScores.Average() > 75 into studentGroup
                     select studentGroup;
@@ -132,25 +141,26 @@ namespace Enterprise.Tests.Linq
         }
 
         [TestMethod]
-        [TestCategory("Linq")]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("GroupBy")]
         [TestCategory("Unit")]
-        [Timeout(30000)]
+        [Timeout(5000)]
         public async Task GroupByCompoundKey()
         {
             try
             {
-                Trace.WriteLine("Group and order by a compound key:");
-                var students = new School().Students;
+                Console.WriteLine("Group and order by a compound key:");
+
+                var students = school.Students;
+                var observable = school.ObservableStudents;
 
                 var queryHighScoreGroups =
-                   from student in students
+                   from student in observable
                    group student by new
                    {
                        FirstLetter = student.LastName[0],
                        Score = student.ExamScores.FirstOrDefault() > 85
                    } into studentGroup
-                   orderby studentGroup.Key.FirstLetter
                    select studentGroup;
 
                 var count = await this.VerifyGroupingsAsync(queryHighScoreGroups);
@@ -166,39 +176,44 @@ namespace Enterprise.Tests.Linq
         }
 
         [TestMethod]
-        [TestCategory("Linq")]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("GroupBy")]
         [TestCategory("Unit")]
-        [Timeout(30000)]
+        [Timeout(5000)]
         public async Task GroupByNestedQuery()
         {
             try
             {
-                Trace.WriteLine("Create a Nested Group:");
-                var students = new School().Students;
+                Console.WriteLine("Create a Nested Group:");
+
+                var students = school.Students;
+                var observable = school.ObservableStudents;
 
                 var queryNestedGroups =
-                    from student in students
+                    from student in observable
                     group student by student.Year into newGroup1
                     from newGroup2 in
                         (from student in newGroup1
                          group student by student.LastName)
-                    group newGroup2 by newGroup1.Key;   
+                    group newGroup2 by newGroup1.Key;
 
-                foreach (var outerGroup in queryNestedGroups)
+                await queryNestedGroups.ForEachAsync(async (outerGroup, ct) => 
                 {
                     Console.WriteLine("DataClass.Student Level = {0}", outerGroup.Key);
-                    foreach (var innerGroup in outerGroup)
+
+                    await outerGroup.ForEachAsync(async (innerGroup, ct1) => 
                     {
                         Console.WriteLine("\tNames that begin with: {0}", innerGroup.Key);
-                        foreach (var innerGroupElement in innerGroup)
-                        {
-                            Console.WriteLine("\t\t{0} {1}", innerGroupElement.LastName, innerGroupElement.FirstName);
-                        }
-                    }
-                }
 
-                await Task.Yield();
+                        await innerGroup.ForEachAsync(innerGroupElement =>
+                        {
+                            Console.WriteLine(
+                                "\t\t{0} {1}", 
+                                innerGroupElement.LastName, 
+                                innerGroupElement.FirstName);
+                        });
+                    });
+                });
             }
             catch (Exception exception)
             {
@@ -208,39 +223,58 @@ namespace Enterprise.Tests.Linq
             }
         }
 
-
         private static int GetPercentile(
-            IStudent s)
+           IStudent s)
         {
             double avg = s.ExamScores.Average();
             return avg > 0 ? (int)avg / 10 : 0;
         }
 
-        private async Task<int> VerifyGroupingsAsync<TKey, TElement>(
-            IAsyncEnumerable<IAsyncGrouping<TKey, TElement>> query)
+        private Task<int> VerifyGroupingsAsync<TKey, TElement>(
+           IAsyncObservable<IAsyncGroupedObservable<TKey, TElement>> query)
         {
-            var count = 0;
+            return this.VerifyGroupingsAsync(query, CancellationToken.None);
+        }
 
-            using (var groupIterator = query.GetAsyncEnumerator())
+        private async Task<int> VerifyGroupingsAsync<TKey, TElement>(
+            IAsyncObservable<IAsyncGroupedObservable<TKey, TElement>> query,
+            CancellationToken cancellationToken)
+        {
+            var handler = new AsyncGroupingHandler<TKey, TElement>();
+
+            await query.ForEachAsync(handler.RunOuterAsync, cancellationToken);
+
+            return handler.Count;
+        }
+
+        private sealed class AsyncGroupingHandler<TKey, TElement>
+        {
+            private int count;
+
+            public int Count { get { return this.count; } }
+
+            public async Task RunInnerAsync(
+                TElement item,
+                int index,
+                CancellationToken cancellationToken)
             {
-                while (await groupIterator.MoveNextAsync())
-                {
-                    var group = groupIterator.Current;
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    Trace.WriteLine(group.Key, "Key");
-
-                    using (var iterator = group.GetAsyncEnumerator())
-                    {
-                        while (await iterator.MoveNextAsync())
-                        {
-                            Trace.WriteLine(iterator.Current, "Item");
-                            count++;
-                        }
-                    }
-                }
+                await Console.Out.WriteLineAsync("Item: " + item);
+                this.count++;
             }
 
-            return count;
+            public async Task RunOuterAsync(
+                IAsyncGroupedObservable<TKey, TElement> group,
+                int index,
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await Console.Out.WriteLineAsync("Key: " + group.Key);
+
+                await group.ForEachAsync(this.RunInnerAsync, cancellationToken);
+            }
         }
     }
 }

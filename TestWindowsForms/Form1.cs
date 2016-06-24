@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Enterprise.Core.Linq.Reactive;
+using TestWindowsForms.Controllers;
 
 namespace TestWindowsForms
 {
@@ -16,9 +17,18 @@ namespace TestWindowsForms
 
         private IDisposable subscription;
 
+        private CancellationTokenSource cancellationTokenSource;
+
         public Form1()
         {
             InitializeComponent();
+        }
+
+        protected virtual IAsyncObservable<long> CreateTimer()
+        {
+            var interval = TimeSpan.FromSeconds(1);
+
+            return AsyncObservable.Timer(TimeSpan.Zero, interval);
         }
 
         private async void StartButton_Click(
@@ -31,12 +41,28 @@ namespace TestWindowsForms
 
             if (this.source == null)
             {
-                var interval = TimeSpan.FromSeconds(1);
-                this.source = AsyncObservable.Timer(TimeSpan.Zero, interval);
+                this.source = this.CreateTimer();
             }
 
-            this.observer = AsyncObserver.Create<long>(this.OnNextAsync);
-            this.subscription = await source.SubscribeAsync(this.observer);
+            if (this.observer == null)
+            {
+                this.observer = AsyncObserver.Create<long>(this.OnNextAsync);
+            }
+
+            if (this.cancellationTokenSource == null)
+            {
+                this.cancellationTokenSource = new CancellationTokenSource();
+            }
+
+            try
+            {
+                this.subscription = await source.SubscribeAsync(
+                    this.observer, this.cancellationTokenSource.Token);
+            }
+            catch (OperationCanceledException)
+            {
+            
+            }
         }
 
         private void StopButton_Click(
@@ -46,6 +72,18 @@ namespace TestWindowsForms
             this.StartButton.Enabled = true;
             this.StopButton.Enabled = false;
             this.ResetButton.Enabled = true;
+
+            if (this.cancellationTokenSource != null)
+            {
+                this.cancellationTokenSource.Cancel();
+                this.cancellationTokenSource = null;
+            }
+
+            if (this.observer != null)
+            {
+                this.observer.OnCompleted();
+                this.observer = null;
+            }
 
             if (this.subscription != null)
             {

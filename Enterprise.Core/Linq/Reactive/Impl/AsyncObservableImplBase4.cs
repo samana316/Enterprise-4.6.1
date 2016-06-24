@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Common;
@@ -7,7 +6,7 @@ using Enterprise.Core.Utilities;
 
 namespace Enterprise.Core.Linq.Reactive.Impl
 {
-    internal abstract class AsyncObservableImplBase3<T> : DisposableBase, IAsyncObservable<T>
+    internal abstract class AsyncObservableImplBase4<T> : DisposableBase, IAsyncObservable<T>
     {
         public IDisposable Subscribe(
             IObserver<T> observer)
@@ -15,21 +14,23 @@ namespace Enterprise.Core.Linq.Reactive.Impl
             throw new NotImplementedException();
         }
 
-        public async Task<IDisposable> SubscribeAsync(
-            IAsyncObserver<T> observer, 
+        public Task<IDisposable> SubscribeAsync(
+            IAsyncObserver<T> observer,
             CancellationToken cancellationToken)
         {
             Check.NotNull(observer, "observer");
             cancellationToken.ThrowIfCancellationRequested();
 
-            return await new AwaitableSubscription(this, observer, cancellationToken);
+            var consumer = new Consumer(this, observer);
+
+            return consumer.RunAsync(cancellationToken);
         }
 
         protected abstract Task<IDisposable> SubscribeCoreAsync(
             IAsyncObserver<T> observer, CancellationToken cancellationToken);
 
         private async Task<IDisposable> SubscribeSafeAsync(
-            IAsyncObserver<T> observer, 
+            IAsyncObserver<T> observer,
             CancellationToken cancellationToken)
         {
             try
@@ -63,28 +64,26 @@ namespace Enterprise.Core.Linq.Reactive.Impl
             return null;
         }
 
-        private sealed class AwaitableSubscription : AsyncObserverBase<T>
+        private sealed class Consumer : AsyncObserverBase<T>
         {
-            private readonly CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            private readonly AsyncObservableImplBase4<T> source;
 
             private readonly IAsyncObserver<T> observer;
 
-            internal readonly Task<IDisposable> subscribeTask;
-
             private bool disposed;
 
-            public AwaitableSubscription(
-                AsyncObservableImplBase3<T> source,
-                IAsyncObserver<T> observer,
-                CancellationToken cancellationToken)
+            public Consumer(
+                AsyncObservableImplBase4<T> source,
+                IAsyncObserver<T> observer)
             {
+                this.source = source;
                 this.observer = observer;
-                this.subscribeTask = source.SubscribeSafeAsync(this, cancellationToken);
             }
 
-            public TaskAwaiter<IDisposable> GetAwaiter()
+            public Task<IDisposable> RunAsync(
+                CancellationToken cancellationToken)
             {
-                return this.subscribeTask.GetAwaiter();
+                return this.source.SubscribeSafeAsync(this, cancellationToken);
             }
 
             protected override void OnCompletedCore()
@@ -115,10 +114,9 @@ namespace Enterprise.Core.Linq.Reactive.Impl
             }
 
             protected override Task OnNextCoreAsync(
-                T value, 
+                T value,
                 CancellationToken cancellationToken)
             {
-                this.cancellationTokenSource.Token.ThrowIfCancellationRequested();
                 cancellationToken.ThrowIfCancellationRequested();
 
                 return this.observer.OnNextAsync(value, cancellationToken);
@@ -134,45 +132,11 @@ namespace Enterprise.Core.Linq.Reactive.Impl
 
                 this.disposed = true;
 
-                try
-                {
-                    this.cancellationTokenSource.Cancel();
-                }
-                catch (Exception exception)
-                {
-                    this.OnError(exception);
-                }
-
-                try
-                {
-                    if (this.subscribeTask != null)
-                    {
-                        this.subscribeTask.Dispose();
-                    }
-                }
-                catch (Exception exception)
-                {
-                    this.OnError(exception);
-                }
-
                 var disposable = this.observer as IDisposable;
                 if (disposable != null)
                 {
                     disposable.Dispose();
                 }
-
-                if (this.subscribeTask != null && 
-                    this.subscribeTask.Status == TaskStatus.RanToCompletion)
-                {
-                    var result = this.subscribeTask.Result;
-
-                    if (result != null)
-                    {
-                        result.Dispose();
-                    }
-                }
-
-                this.cancellationTokenSource.Dispose();
 
                 base.Dispose(disposing);
             }
@@ -184,14 +148,14 @@ namespace Enterprise.Core.Linq.Reactive.Impl
             {
             }
 
-            public UnsubscribeException(string message) 
+            public UnsubscribeException(string message)
                 : base(message)
             {
             }
 
             public UnsubscribeException(
                 string message,
-                Exception innerException) 
+                Exception innerException)
                 : base(message, innerException)
             {
             }

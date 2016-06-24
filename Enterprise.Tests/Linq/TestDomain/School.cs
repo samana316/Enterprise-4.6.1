@@ -3,7 +3,7 @@ using Enterprise.Core.Linq;
 
 namespace Enterprise.Tests.Linq.TestDomain
 {
-    internal class School
+    internal partial class School
     {
         private static readonly IReadOnlyList<IStudent> students = new List<Student>
         {

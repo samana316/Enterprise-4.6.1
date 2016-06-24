@@ -24,17 +24,26 @@ namespace Enterprise.Core.Linq.Reactive
 
             if (index < 0)
             {
-                Error.ArgumentOutOfRange("index");
+                throw Error.ArgumentOutOfRange("index");
             }
 
             return new ElementAtAsyncObservable<TSource>(source, index, true);
+        }
+
+        public static IAsyncObservable<TSource> ElementAtOrDefault<TSource>(
+            this IAsyncObservable<TSource> source,
+            int index)
+        {
+            Check.NotNull(source, "source");
+
+            return new ElementAtAsyncObservable<TSource>(source, index, false);
         }
 
         private sealed class ElementAtAsyncObservable<TSource> : AsyncObservableBase<TSource>
         {
             private readonly IAsyncObservable<TSource> source;
 
-            private int index;
+            private readonly int index;
 
             private readonly bool throwOnEmpty;
 
@@ -48,11 +57,59 @@ namespace Enterprise.Core.Linq.Reactive
                 this.throwOnEmpty = throwOnEmpty;
             }
 
-            protected override async Task<IDisposable> SubscribeCoreAsync(
+            protected override Task<IDisposable> SubscribeCoreAsync(
                 IAsyncObserver<TSource> observer, 
                 CancellationToken cancellationToken)
             {
-                throw new NotImplementedException();
+                var elementAtImpl = new ElementAtAsyncObserver(this, observer);
+
+                return this.source.SubscribeSafeAsync(elementAtImpl, cancellationToken);
+            }
+
+            private sealed class ElementAtAsyncObserver : AsyncSink<TSource>
+            {
+                private readonly ElementAtAsyncObservable<TSource> parent;
+
+                private readonly IAsyncObserver<TSource> observer;
+
+                private int index;
+
+                public ElementAtAsyncObserver(
+                    ElementAtAsyncObservable<TSource> parent,
+                    IAsyncObserver<TSource> observer)
+                    : base(observer.AsPartial())
+                {
+                    this.parent = parent;
+                    this.observer = observer;
+                    this.index = parent.index;
+                }
+
+                protected override async Task OnNextCoreAsync(
+                    TSource value, 
+                    CancellationToken cancellationToken)
+                {
+                    if (this.index == 0)
+                    {
+                        await this.observer.OnNextAsync(value, cancellationToken);
+                        this.OnCompleted();
+                    }
+
+                    this.index--;
+                }
+
+                protected override void OnCompletedCore()
+                {
+                    if (this.parent.throwOnEmpty)
+                    {
+                        throw Error.ArgumentOutOfRange("index");
+                    }
+                    else
+                    {
+                        this.observer.OnNextAsync(default(TSource)).Wait();
+                    }
+
+                    base.OnCompletedCore();
+                }
             }
         }
     }

@@ -86,11 +86,14 @@
     <Compile Include="Linq\Reactive\AsyncObservablePoc.cs" />
     <Compile Include="Linq\Reactive\AsyncObservableTest.cs" />
     <Compile Include="Linq\Reactive\ConcatUnitTest.cs" />
+    <Compile Include="Linq\Reactive\ForEachAsyncUnitTest.cs" />
+    <Compile Include="Linq\Reactive\GroupByUnitTest.cs" />
     <Compile Include="Linq\Reactive\Helpers\DataReaderObservable.cs" />
     <Compile Include="Linq\Reactive\Helpers\TestAsyncObserver.cs" />
     <Compile Include="Linq\Reactive\PagingOperationsUnitTest.cs" />
     <Compile Include="Linq\Reactive\SelectManyUnitTest.cs" />
     <Compile Include="Linq\Reactive\SetOperationsUnitTest.cs" />
+    <Compile Include="Linq\Reactive\TestDomain\School.cs" />
     <Compile Include="Linq\RepeatUnitTest.cs" />
     <Compile Include="Linq\SelectManyUnitTest.cs" />
     <Compile Include="Linq\SetOperationsUnitTest.cs" />

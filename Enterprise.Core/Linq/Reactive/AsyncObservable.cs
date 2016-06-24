@@ -71,6 +71,35 @@ namespace Enterprise.Core.Linq.Reactive
             return Create(subscribeAsync).SubscribeAsync(observer, cancellationToken);
         }
 
+        public static Task<IDisposable> SubscribeRawAsync<TSource>(
+            this IAsyncObservable<TSource> source,
+            IAsyncObserver<TSource> observer)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(observer, "observer");
+
+            return source.SubscribeRawAsync(observer, CancellationToken.None);
+        }
+
+        public static Task<IDisposable> SubscribeRawAsync<TSource>(
+            this IAsyncObservable<TSource> source,
+            IAsyncObserver<TSource> observer,
+            CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            Check.NotNull(source, "source");
+            Check.NotNull(observer, "observer");
+
+            var raw = source as AsyncObservableBase<TSource>;
+            if (!ReferenceEquals(raw, null))
+            {
+                return raw.SubscribeRawAsync(observer, cancellationToken);
+            }
+
+            return source.SubscribeAsync(observer, cancellationToken);
+        }
+
         private static TElement IdentityFunction<TElement>(
             TElement element)
         {

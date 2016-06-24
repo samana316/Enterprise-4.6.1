@@ -35,6 +35,11 @@ namespace Enterprise.Core.Linq.Reactive
             return new AnonymousAsyncObserver<T>(onNextAsync, onError, onCompleted);
         }
 
+        internal static IAsyncObserver<T> NoOp<T>()
+        {
+            return NoOpAsyncObserver<T>.Instance;
+        }
+
         private static void NoOp()
         {
         }
@@ -82,6 +87,31 @@ namespace Enterprise.Core.Linq.Reactive
                 CancellationToken cancellationToken)
             {
                 return this.onNextAsync(value, cancellationToken);
+            }
+        }
+
+        private sealed class NoOpAsyncObserver<T> : AsyncObserverBase<T>
+        {
+            public static NoOpAsyncObserver<T> Instance = new NoOpAsyncObserver<T>();
+
+            private NoOpAsyncObserver()
+            {
+            }
+
+            protected override void OnCompletedCore()
+            {
+            }
+
+            protected override void OnErrorCore(
+                Exception error)
+            {
+            }
+
+            protected override async Task OnNextCoreAsync(
+                T value, 
+                CancellationToken cancellationToken)
+            {
+                await Task.Yield();
             }
         }
     }
