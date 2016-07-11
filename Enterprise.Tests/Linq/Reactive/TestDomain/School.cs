@@ -14,19 +14,10 @@ namespace Enterprise.Tests.Linq.TestDomain
 
         private IAsyncObservable<IStudent> GetObservableStudents()
         {
-            return new _();
-            //return AsyncObservable.Create<IStudent>(async (observer, cancellationToken) => 
-            //{
-            //    foreach (var student in students)
-            //    {
-            //        cancellationToken.ThrowIfCancellationRequested();
-
-            //        await observer.OnNextAsync(student, cancellationToken);
-            //    }
-            //});
+            return new ObservableStudentsImpl();
         }
 
-        private sealed class _ : IAsyncObservable<IStudent>
+        private sealed class ObservableStudentsImpl : IAsyncObservable<IStudent>
         {
             public IDisposable Subscribe(
                 IObserver<IStudent> observer)

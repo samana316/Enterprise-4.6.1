@@ -43,6 +43,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\ServiceModel\ChannelProxy.cs" />
     <Compile Include="Common\Threading\CancellationTokenExtensions.cs" />
     <Compile Include="Linq\Reactive\AsyncGroupedObservable.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Aggregate.cs" />
@@ -53,6 +54,9 @@
     <Compile Include="Linq\Reactive\AsyncObservable.Conversions.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Empty.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.GroupBy.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservable.Joins.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservable.Max.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservable.Min.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.PagingOperations.cs" />
     <Compile Include="Common\Clock.cs" />
     <Compile Include="Common\Collections\Extensions\CollectionExtensions.cs" />
@@ -144,6 +148,7 @@
     <Compile Include="Linq\Reactive\AsyncObservable.Timer.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Where.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.While.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservable.Zip.cs" />
     <Compile Include="Linq\Reactive\AsyncObservableBase.cs" />
     <Compile Include="Linq\Reactive\AsyncObserver.Conversions.cs" />
     <Compile Include="Linq\Reactive\AsyncObserver.Create.cs" />
@@ -157,6 +162,7 @@
     <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase1.cs" />
     <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase2.cs" />
     <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase3.cs" />
+    <None Include="Linq\Reactive\Impl\Temp\Join.cs" />
     <Compile Include="Linq\Reactive\Impl\WrapperObserver.cs" />
     <Compile Include="Linq\Reactive\IPartialObserver.cs" />
     <Compile Include="Linq\Reactive\Subjects\AsyncSubject.cs" />

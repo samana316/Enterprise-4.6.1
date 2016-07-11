@@ -59,5 +59,41 @@ namespace Enterprise.Tests.Linq.Reactive
                 Assert.Fail(exception.Message);
             }
         }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("ForEachAsync")]
+        [TestCategory("Unit")]
+        [Timeout(5000)]
+        public async Task ForEachAsyncInfinite()
+        {
+            var list = new List<int>();
+
+            try
+            {
+                using (var cancellationTokenSource = new CancellationTokenSource())
+                {
+                    cancellationTokenSource.CancelAfter(1);
+
+                    var source = AsyncObservable.Repeat(1);
+
+                    await source.ForEachAsync(list.Add, cancellationTokenSource.Token);
+                }
+            }
+            catch (OperationCanceledException exception)
+            {
+                Trace.WriteLine(exception);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+            finally
+            {
+                Trace.WriteLine(list.Count);
+            }
+        }
     }
 }

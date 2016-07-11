@@ -7,6 +7,7 @@ using System.Threading;
 using Enterprise.Core.Common.Collections.Extensions;
 using Enterprise.Core.Linq;
 using Enterprise.Core.Linq.Providers;
+using Enterprise.Core.Linq.Reactive;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Enterprise.Tests.Linq
@@ -24,6 +25,29 @@ namespace Enterprise.Tests.Linq
             {
                 var linqMethods = this.GetLinqMethods(typeof(Enumerable));
                 var asyncLinqMethods = this.GetLinqMethods(typeof(AsyncEnumerable));
+
+                var query = linqMethods.Except(asyncLinqMethods);
+
+                query.ForEach(item => Trace.WriteLine(item));
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq")]
+        [TestCategory("Temp")]
+        [Timeout(30000)]
+        public void CompareObservableLinqMethods()
+        {
+            try
+            {
+                var linqMethods = this.GetLinqMethods(typeof(Enumerable));
+                var asyncLinqMethods = this.GetLinqMethods(typeof(AsyncObservable));
 
                 var query = linqMethods.Except(asyncLinqMethods);
 

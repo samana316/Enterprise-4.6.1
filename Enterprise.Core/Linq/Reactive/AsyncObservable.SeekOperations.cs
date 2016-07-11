@@ -63,7 +63,7 @@ namespace Enterprise.Core.Linq.Reactive
             {
                 var elementAtImpl = new ElementAtAsyncObserver(this, observer);
 
-                return this.source.SubscribeSafeAsync(elementAtImpl, cancellationToken);
+                return this.source.SubscribeRawAsync(elementAtImpl, cancellationToken);
             }
 
             private sealed class ElementAtAsyncObserver : AsyncSink<TSource>

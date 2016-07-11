@@ -10,21 +10,34 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
 {
     internal class TestAsyncObserver<T> : IAsyncObserver<T>
     {
-        private readonly List<T> items = new List<T>();
+        private readonly ICollection<T> items = new List<T>();
+
+        private readonly ICollection<Exception> errors = new List<Exception>();
 
         public IAsyncEnumerable<T> Items
         {
             get { return this.items.AsAsyncEnumerable(); }
         }
 
+        public IAsyncEnumerable<Exception> Errors
+        {
+            get { return this.errors.AsAsyncEnumerable(); }
+        }
+
+        public bool IsCompleted { get; private set; }
+
         public virtual void OnCompleted()
         {
+            this.IsCompleted = true;
+
             Trace.WriteLine(DateTime.Now, "OnCompleted");
         }
 
         public virtual void OnError(
             Exception error)
         {
+            this.errors.Add(error);
+
             Trace.WriteLine(error, "OnError");
         }
 
@@ -52,6 +65,8 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
         public void Reset()
         {
             this.items.Clear();
+            this.errors.Clear();
+            this.IsCompleted = false;
         }
     }
 }
