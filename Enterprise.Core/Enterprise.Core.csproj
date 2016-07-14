@@ -161,7 +161,7 @@
     <Compile Include="Linq\Reactive\IAsyncGroupedObservable.cs" />
     <Compile Include="Linq\Reactive\IAsyncObservable.cs" />
     <Compile Include="Linq\Reactive\IAsyncObserver.cs" />
-    <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase4.cs" />
+    <Compile Include="Linq\Reactive\Impl\AsyncObservableBase.Impl.cs" />
     <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase1.cs" />
     <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase2.cs" />
     <Compile Include="Linq\Reactive\Impl\AsyncObservableImplBase3.cs" />

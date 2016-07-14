@@ -395,6 +395,7 @@ namespace Enterprise.Tests.Linq.Reactive
 
         [TestMethod]
         [TestCategory("Linq.Reactive")]
+        [TestCategory("Conversions")]
         [TestCategory("Unit")]
         [Timeout(10000)]
         public async Task ToAsyncEnumerableSimple()
@@ -948,7 +949,7 @@ namespace Enterprise.Tests.Linq.Reactive
                 var source = AsyncObservable.Range(1, 3);
                 var toList = source.ToList();
 
-                await toList.ForEachAsync(list => 
+                await toList.Single().ForEachAsync(list => 
                 {
                     Trace.WriteLine(list.Count);
                     Assert.AreEqual(3, list.Count);

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Common.Threading.Tasks;
@@ -165,6 +166,58 @@ namespace Enterprise.Core.Linq.Reactive
             Check.NotNull(source, "source");
 
             return new ToListAsyncObservable<TSource>(source);
+        }
+
+        public static IAsyncObservable<ILookup<TKey, TSource>> ToLookup<TSource, TKey>(
+            this IAsyncObservable<TSource> source,
+            Func<TSource, TKey> keySelector)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(keySelector, "keySelector");
+
+            return new ToLookupAsyncObservable<TSource, TKey, TSource>(
+                source, keySelector, IdentityFunction, null);
+        }
+
+        public static IAsyncObservable<ILookup<TKey, TSource>> ToLookup<TSource, TKey>(
+            this IAsyncObservable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            IEqualityComparer<TKey> comparer)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(keySelector, "keySelector");
+            Check.NotNull(comparer, "comparer");
+
+            return new ToLookupAsyncObservable<TSource, TKey, TSource>(
+                source, keySelector, IdentityFunction, comparer);
+        }
+
+        public static IAsyncObservable<ILookup<TKey, TElement>> ToLookup<TSource, TKey, TElement>(
+            this IAsyncObservable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(keySelector, "keySelector");
+            Check.NotNull(elementSelector, "elementSelector");
+
+            return new ToLookupAsyncObservable<TSource, TKey, TElement>(
+                source, keySelector, elementSelector, null);
+        }
+
+        public static IAsyncObservable<ILookup<TKey, TElement>> ToLookup<TSource, TKey, TElement>(
+            this IAsyncObservable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            Func<TSource, TElement> elementSelector,
+            IEqualityComparer<TKey> comparer)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(keySelector, "keySelector");
+            Check.NotNull(elementSelector, "elementSelector");
+            Check.NotNull(comparer, "comparer");
+
+            return new ToLookupAsyncObservable<TSource, TKey, TElement>(
+                source, keySelector, elementSelector, comparer);
         }
 
         private sealed class AsyncEnumerableObservableAdapter<TSource> : AsyncObservableBase<TSource>
@@ -372,7 +425,7 @@ namespace Enterprise.Core.Linq.Reactive
 
                 var result = new ReturnAsyncObservable<TSource[]>(list.ToArray());
 
-                return await result.SubscribeAsync(observer, cancellationToken);
+                return await result.SubscribeRawAsync(observer, cancellationToken);
             }
         }
 
@@ -413,7 +466,7 @@ namespace Enterprise.Core.Linq.Reactive
 
                 var result = Return(dictionary);
 
-                return await result.SubscribeAsync(observer, cancellationToken);
+                return await result.SubscribeRawAsync(observer, cancellationToken);
             }
         }
 
@@ -438,7 +491,111 @@ namespace Enterprise.Core.Linq.Reactive
 
                 var result = new ReturnAsyncObservable<IList<TSource>>(list);
 
-                return await result.SubscribeAsync(observer, cancellationToken);
+                return await result.SubscribeRawAsync(observer, cancellationToken);
+            }
+        }
+
+        private sealed class ToLookupAsyncObservable<TSource, TKey, TElement> 
+            : AsyncObservableBase<ILookup<TKey, TElement>>
+        {
+            private readonly IAsyncObservable<TSource> source;
+
+            private readonly Func<TSource, TKey> keySelector;
+
+            private readonly Func<TSource, TElement> elementSelector;
+
+            private readonly IEqualityComparer<TKey> comparer;
+
+            public ToLookupAsyncObservable(
+                IAsyncObservable<TSource> source, 
+                Func<TSource, TKey> keySelector, 
+                Func<TSource, TElement> elementSelector, 
+                IEqualityComparer<TKey> comparer)
+            {
+                this.source = source;
+                this.keySelector = keySelector;
+                this.elementSelector = elementSelector;
+                this.comparer = comparer ?? EqualityComparer<TKey>.Default;
+            }
+
+            protected override async Task<IDisposable> SubscribeCoreAsync(
+                IAsyncObserver<ILookup<TKey, TElement>> observer, 
+                CancellationToken cancellationToken)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                var lookup = new Lookup(comparer);
+                Action<TSource> onNext = value =>
+                {
+                    var key = this.keySelector(value);
+                    var element = this.elementSelector(value);
+
+                    lookup.Add(key, element);
+                };
+                await source.ForEachAsync(onNext, cancellationToken);
+
+                var result = new ReturnAsyncObservable<ILookup<TKey, TElement>>(lookup);
+
+                return await result.SubscribeRawAsync(observer, cancellationToken);
+            }
+
+            private sealed class Lookup : ILookup<TKey, TElement>
+            {
+                private readonly IDictionary<TKey, Grouping> map;
+
+                public Lookup(
+                    IEqualityComparer<TKey> comparer)
+                {
+                    this.map = new Dictionary<TKey, Grouping>(comparer);
+                }
+
+                public IEnumerable<TElement> this[TKey key]
+                {
+                    get { return this.map[key]; }
+                }
+
+                public int Count
+                {
+                    get { return this.map.Count; }
+                }
+
+                public void Add(
+                    TKey key, 
+                    TElement element)
+                {
+                    if (this.map.ContainsKey(key))
+                    {
+                        this.map[key].Add(element);
+                    }
+                    else
+                    {
+                        var grouping = new Grouping { Key = key };
+                        grouping.Add(element);
+
+                        this.map.Add(key, grouping);
+                    }
+                }
+
+                public bool Contains(
+                    TKey key)
+                {
+                    return this.map.ContainsKey(key);
+                }
+
+                public IEnumerator<IGrouping<TKey, TElement>> GetEnumerator()
+                {
+                    return this.map.Values.GetEnumerator();
+                }
+
+                IEnumerator IEnumerable.GetEnumerator()
+                {
+                    return this.GetEnumerator();
+                }
+            }
+
+            private sealed class Grouping: List<TElement>, IGrouping<TKey, TElement>
+            {
+                public TKey Key { get; set; }
             }
         }
     }

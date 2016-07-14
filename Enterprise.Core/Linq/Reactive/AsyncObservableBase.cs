@@ -2,11 +2,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Enterprise.Core.Linq.Reactive.Impl;
 
 namespace Enterprise.Core.Linq.Reactive
 {
-    internal abstract class AsyncObservableBase<T> : AsyncObservableImplBase4<T>
+    internal abstract partial class AsyncObservableBase<T>
     {
         public override bool Equals(
             object obj)

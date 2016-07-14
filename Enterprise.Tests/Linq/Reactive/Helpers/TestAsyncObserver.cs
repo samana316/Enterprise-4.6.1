@@ -45,17 +45,11 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
         public virtual void OnError(
             Exception error)
         {
-            //var aggregate = error as AggregateException;
-            //if (aggregate != null)
-            //{
-            //    error = error.InnerException ?? error;
-            //}
-
             this.errors.Add(error);
             Trace.WriteLine(error, "OnError");
         }
 
-        public void OnNext(
+        public virtual void OnNext(
             T value)
         {
             throw new InvalidOperationException("Synchronous version should not be called.");

@@ -4,9 +4,9 @@ using System.Threading.Tasks;
 using Enterprise.Core.Common;
 using Enterprise.Core.Utilities;
 
-namespace Enterprise.Core.Linq.Reactive.Impl
+namespace Enterprise.Core.Linq.Reactive
 {
-    internal abstract class AsyncObservableImplBase4<T> : DisposableBase, IAsyncObservable<T>
+    partial class AsyncObservableBase<T> : DisposableBase, IAsyncObservable<T>
     {
         [Obsolete]
         public IDisposable Subscribe(
@@ -71,14 +71,14 @@ namespace Enterprise.Core.Linq.Reactive.Impl
 
         private sealed class Consumer : AsyncObserverBase<T>
         {
-            private readonly AsyncObservableImplBase4<T> source;
+            private readonly AsyncObservableBase<T> source;
 
             private readonly IAsyncObserver<T> observer;
 
             private bool disposed;
 
             public Consumer(
-                AsyncObservableImplBase4<T> source,
+                AsyncObservableBase<T> source,
                 IAsyncObserver<T> observer)
             {
                 this.source = source;

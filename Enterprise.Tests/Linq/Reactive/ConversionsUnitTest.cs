@@ -171,5 +171,45 @@ namespace Enterprise.Tests.Linq.Reactive
                 Assert.Fail(exception.Message);
             }
         }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("Conversions")]
+        [TestCategory("Unit")]
+        public async Task ToLookupSimple()
+        {
+            try
+            {
+                var source = AsyncObservable.Create<string>(async observer =>
+                {
+                    await observer.OnNextAsync("A");
+                    await observer.OnNextAsync("AB");
+                    await observer.OnNextAsync("ABC");
+                    await observer.OnNextAsync("X");
+                    await observer.OnNextAsync("XY");
+                    await observer.OnNextAsync("XYZ");
+                });
+
+                var query = source.ToLookup(x => x.Length);
+
+                ILookup<int, string> lookup = null;
+                await query.Single().ForEachAsync(x => lookup = x);
+
+                Assert.IsNotNull(lookup);
+
+                foreach (var grouping in lookup)
+                {
+                    Trace.WriteLine(
+                        JsonConvert.SerializeObject(grouping),
+                        grouping.Key.ToString());
+                }
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
     }
 }
