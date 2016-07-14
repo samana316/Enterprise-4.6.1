@@ -43,15 +43,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Common\Runtime\ExceptionServices\ExceptionExtensions.cs" />
     <Compile Include="Common\ServiceModel\ChannelProxy.cs" />
     <Compile Include="Common\Threading\CancellationTokenExtensions.cs" />
     <Compile Include="Linq\Reactive\AsyncGroupedObservable.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Aggregate.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.All.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservable.Contains.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Any.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Average.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Concat.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Conversions.cs" />
+    <Compile Include="Linq\Reactive\AsyncObservable.LongCount.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Empty.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.GroupBy.cs" />
     <Compile Include="Linq\Reactive\AsyncObservable.Joins.cs" />

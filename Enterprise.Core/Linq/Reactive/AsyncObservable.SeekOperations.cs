@@ -57,13 +57,17 @@ namespace Enterprise.Core.Linq.Reactive
                 this.throwOnEmpty = throwOnEmpty;
             }
 
-            protected override Task<IDisposable> SubscribeCoreAsync(
+            protected override async Task<IDisposable> SubscribeCoreAsync(
                 IAsyncObserver<TSource> observer, 
                 CancellationToken cancellationToken)
             {
                 var elementAtImpl = new ElementAtAsyncObserver(this, observer);
 
-                return this.source.SubscribeRawAsync(elementAtImpl, cancellationToken);
+                var subscription = await this.source.SubscribeRawAsync(elementAtImpl, cancellationToken);
+
+                await elementAtImpl.OnCompletedAsync(cancellationToken);
+
+                return subscription;
             }
 
             private sealed class ElementAtAsyncObserver : AsyncSink<TSource>
@@ -73,6 +77,8 @@ namespace Enterprise.Core.Linq.Reactive
                 private readonly IAsyncObserver<TSource> observer;
 
                 private int index;
+
+                internal bool found;
 
                 public ElementAtAsyncObserver(
                     ElementAtAsyncObservable<TSource> parent,
@@ -90,6 +96,7 @@ namespace Enterprise.Core.Linq.Reactive
                 {
                     if (this.index == 0)
                     {
+                        this.found = true;
                         await this.observer.OnNextAsync(value, cancellationToken);
                         this.OnCompleted();
                     }
@@ -97,18 +104,22 @@ namespace Enterprise.Core.Linq.Reactive
                     this.index--;
                 }
 
-                protected override void OnCompletedCore()
+                internal async Task OnCompletedAsync(
+                    CancellationToken cancellationToken)
                 {
-                    if (this.parent.throwOnEmpty)
+                    if (!this.found)
                     {
-                        throw Error.ArgumentOutOfRange("index");
-                    }
-                    else
-                    {
-                        this.observer.OnNextAsync(default(TSource)).Wait();
+                        if (this.parent.throwOnEmpty)
+                        {
+                            throw Error.ArgumentOutOfRange("index");
+                        }
+                        else
+                        {
+                            await this.observer.OnNextAsync(default(TSource), cancellationToken);
+                        }
                     }
 
-                    base.OnCompletedCore();
+                    this.OnCompletedCore();
                 }
             }
         }

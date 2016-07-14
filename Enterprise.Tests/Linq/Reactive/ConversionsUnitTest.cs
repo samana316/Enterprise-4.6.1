@@ -55,7 +55,7 @@ namespace Enterprise.Tests.Linq.Reactive
         }
 
         [TestMethod]
-        [TestCategory("Linq.Reactive")]
+        [TestCategory("Linq.Reactive.Infinite")]
         [TestCategory("Conversions")]
         [TestCategory("Unit")]
         [Timeout(5000)]

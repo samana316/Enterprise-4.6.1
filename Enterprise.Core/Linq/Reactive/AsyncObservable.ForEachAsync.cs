@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Enterprise.Core.Common.Runtime.ExceptionServices;
 using Enterprise.Core.Common.Threading.Tasks;
 using Enterprise.Core.Utilities;
 
@@ -103,6 +104,7 @@ namespace Enterprise.Core.Linq.Reactive
             protected override void OnErrorCore(
                 Exception error)
             {
+                error.Rethrow();
             }
 
             protected override Task OnNextCoreAsync(

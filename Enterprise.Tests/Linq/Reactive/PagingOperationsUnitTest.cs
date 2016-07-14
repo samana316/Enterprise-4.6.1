@@ -18,6 +18,70 @@ namespace Enterprise.Tests.Linq.Reactive
         [TestCategory("Paging")]
         [TestCategory("Unit")]
         [Timeout(5000)]
+        public async Task SkipSimple()
+        {
+            try
+            {
+                var observable = AsyncObservable.Create<long>(async observer =>
+                {
+                    await observer.OnNextAsync(0);
+                    await observer.OnNextAsync(1);
+                    await observer.OnNextAsync(2);
+                });
+
+                var take = observable.Skip(1);
+
+                using (await take.SubscribeAsync(new TestAsyncObserver<long>())) { }
+
+                var sequenceEqual = false;
+                await take.SequenceEqual(new long[] { 1, 2 }).ForEachAsync(x => sequenceEqual = x);
+                Assert.IsTrue(sequenceEqual);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("Paging")]
+        [TestCategory("Unit")]
+        [Timeout(5000)]
+        public async Task SkipWhileSimple()
+        {
+            try
+            {
+                var observable = AsyncObservable.Create<long>(async observer =>
+                {
+                    await observer.OnNextAsync(0);
+                    await observer.OnNextAsync(1);
+                    await observer.OnNextAsync(2);
+                });
+
+                var take = observable.SkipWhile(x => x < 1);
+
+                using (await take.SubscribeAsync(new TestAsyncObserver<long>())) { }
+
+                var sequenceEqual = false;
+                await take.SequenceEqual(new long[] { 1, 2 }).ForEachAsync(x => sequenceEqual = x);
+                Assert.IsTrue(sequenceEqual);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("Paging")]
+        [TestCategory("Unit")]
+        [Timeout(5000)]
         public async Task TakeSimple()
         {
             try

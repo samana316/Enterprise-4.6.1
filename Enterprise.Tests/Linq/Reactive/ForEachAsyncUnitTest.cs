@@ -17,6 +17,42 @@ namespace Enterprise.Tests.Linq.Reactive
         [TestCategory("Linq.Reactive")]
         [TestCategory("ForEachAsync")]
         [TestCategory("Unit")]
+        public async Task ForEachAsyncError()
+        {
+            try
+            {
+                var count = 5;
+                var source = AsyncObservable.Range(1, count);
+
+                Action<int> onNext = x =>
+                {
+                    var y = 1m / (count - x);
+
+                    Trace.WriteLine(y, "OnNext");
+                };
+
+                await source.ForEachAsync(onNext);
+            }
+            catch (AggregateException exception)
+            {
+                var inner = exception.InnerException;
+
+                Trace.WriteLine(inner);
+
+                Assert.IsTrue(inner is DivideByZeroException);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.IsTrue(exception is DivideByZeroException);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("ForEachAsync")]
+        [TestCategory("Unit")]
         [Timeout(5000)]
         public async Task ForEachAsyncNested()
         {
@@ -61,7 +97,7 @@ namespace Enterprise.Tests.Linq.Reactive
         }
 
         [TestMethod]
-        [TestCategory("Linq.Reactive")]
+        [TestCategory("Linq.Reactive.Infinite")]
         [TestCategory("ForEachAsync")]
         [TestCategory("Unit")]
         [Timeout(5000)]

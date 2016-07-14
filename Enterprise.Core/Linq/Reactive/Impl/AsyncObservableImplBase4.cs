@@ -8,10 +8,13 @@ namespace Enterprise.Core.Linq.Reactive.Impl
 {
     internal abstract class AsyncObservableImplBase4<T> : DisposableBase, IAsyncObservable<T>
     {
+        [Obsolete]
         public IDisposable Subscribe(
             IObserver<T> observer)
         {
-            throw new NotImplementedException();
+            Check.NotNull(observer, "observer");
+
+            return this.SubscribeAsync(observer.AsAsyncObserver()).Result;
         }
 
         public Task<IDisposable> SubscribeAsync(
@@ -35,7 +38,9 @@ namespace Enterprise.Core.Linq.Reactive.Impl
         {
             try
             {
-                return await this.SubscribeCoreAsync(observer, cancellationToken);
+                var subscription = await this.SubscribeCoreAsync(observer, cancellationToken);
+
+                return subscription ?? EmptyDisposable.Instance;
             }
             catch (OperationCanceledException)
             {
@@ -61,7 +66,7 @@ namespace Enterprise.Core.Linq.Reactive.Impl
                 }
             }
 
-            return null;
+            return EmptyDisposable.Instance;
         }
 
         private sealed class Consumer : AsyncObserverBase<T>
@@ -139,6 +144,15 @@ namespace Enterprise.Core.Linq.Reactive.Impl
                 }
 
                 base.Dispose(disposing);
+            }
+        }
+
+        private sealed class EmptyDisposable : DisposableBase
+        {
+            public static readonly IDisposable Instance = new EmptyDisposable();
+
+            private EmptyDisposable()
+            {
             }
         }
 

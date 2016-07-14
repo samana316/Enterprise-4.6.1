@@ -85,7 +85,7 @@ namespace Enterprise.Core.Linq.Reactive.Impl
 
             public bool MoveNext()
             {
-                throw new NotImplementedException();
+                return this.MoveNextAsync().Result;
             }
 
             public async Task<bool> MoveNextAsync(

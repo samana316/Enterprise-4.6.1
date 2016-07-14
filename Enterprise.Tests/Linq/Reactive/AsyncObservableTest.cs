@@ -7,6 +7,7 @@ using Enterprise.Core.Linq;
 using Enterprise.Core.Linq.Reactive;
 using Enterprise.Tests.Linq.Reactive.Helpers;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Newtonsoft.Json;
 
 namespace Enterprise.Tests.Linq.Reactive
 {
@@ -18,7 +19,7 @@ namespace Enterprise.Tests.Linq.Reactive
         [TestCategory("Create")]
         [TestCategory("Unit")]
         [Timeout(5000)]
-        public async Task CreateSimple()
+        public void CreateAndSerialize()
         {
             try
             {
@@ -28,13 +29,38 @@ namespace Enterprise.Tests.Linq.Reactive
                     await observer.OnNextAsync(2);
                     await observer.OnNextAsync(3);
                 });
+
+                var json = JsonConvert.SerializeObject(observable);
+                var result2 = JsonConvert.DeserializeObject(json);
+                var json2 = JsonConvert.SerializeObject(result2);
+
+                Trace.WriteLine(json2, result2.GetType().AssemblyQualifiedName);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("Create")]
+        [TestCategory("Unit")]
+        public void CreateSimple()
+        {
+            try
+            {
+                var observable = AsyncObservable.Create<int>(async observer =>
+                {
+                    await observer.OnNextAsync(1);
+                    await observer.OnNextAsync(2);
+                    await observer.OnNextAsync(3);
+                });
                 Trace.WriteLine(observable, "observable");
 
-                var testObserver = new TestAsyncObserver<long>();
-                using (await observable.SubscribeAsync(testObserver)) { }
-
-                Assert.IsTrue(
-                    await testObserver.Items.SequenceEqualAsync(new long[] { 1, 2, 3 }));
+                Assert.AreEqual(observable, Enumerable.Range(1, 3));
             }
             catch (Exception exception)
             {
@@ -90,6 +116,37 @@ namespace Enterprise.Tests.Linq.Reactive
         }
 
         [TestMethod]
+        [TestCategory("Linq.Reactive.Infinite")]
+        [TestCategory("Create")]
+        [TestCategory("Unit")]
+        [Timeout(5000)]
+        public async Task CreateError()
+        {
+            try
+            {
+                var observable = AsyncObservable.Create<int>(this.CreateErrorSubscribeAsync);
+
+                await observable.SubscribeAsync(new TestAsyncObserver<int>());
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        private async Task<IDisposable> CreateErrorSubscribeAsync(
+            IAsyncObserver<int> observer,
+            CancellationToken cancellationToken)
+        {
+            for (var i = 3; true; i--)
+            {
+                await observer.OnNextAsync(6 / i);
+            }
+        }
+
+        [TestMethod]
         [TestCategory("Linq.Reactive")]
         [TestCategory("Create")]
         [TestCategory("Unit")]
@@ -119,6 +176,8 @@ namespace Enterprise.Tests.Linq.Reactive
                     {
                         observer.OnCompleted();
                     }
+
+                    return TestSubscription.Instance;
                 });
                 Trace.WriteLine(source, "source");
 
@@ -129,7 +188,7 @@ namespace Enterprise.Tests.Linq.Reactive
                 Trace.WriteLine(query, "query");
 
                 var testObserver = new TestAsyncObserver<decimal>();
-                await query.SubscribeAsync(testObserver);
+                using (await query.SubscribeAsync(testObserver)) { }
 
                 Assert.IsTrue(
                     await testObserver.Items.SequenceEqualAsync(new decimal[] { 1, 3, 5 }));
@@ -158,6 +217,8 @@ namespace Enterprise.Tests.Linq.Reactive
                         await observer.OnNextAsync(1);
                         await observer.OnNextAsync(2);
                         await observer.OnNextAsync(3);
+
+                        return TestSubscription.Instance;
                     }
                     finally
                     {
@@ -197,6 +258,8 @@ namespace Enterprise.Tests.Linq.Reactive
                     await observer.OnNextAsync(1);
                     await observer.OnNextAsync(null);
                     await observer.OnNextAsync(3);
+
+                    return TestSubscription.Instance;
                 });
                 Trace.WriteLine(observable, "observable");
 
@@ -231,6 +294,8 @@ namespace Enterprise.Tests.Linq.Reactive
                     await observer.OnNextAsync(1);
                     await observer.OnNextAsync(null);
                     await observer.OnNextAsync(3);
+
+                    return TestSubscription.Instance;
                 });
                 Trace.WriteLine(observable, "observable");
 
@@ -315,6 +380,9 @@ namespace Enterprise.Tests.Linq.Reactive
                     using (var subscription = await query.SubscribeAsync(observer, cancellationToken))
                     {
                     }
+
+                    Assert.IsTrue(
+                        await observer.Items.SequenceEqualAsync(new decimal[] { 1, 3, 5 }));
                 }
             }
             catch (Exception exception)
@@ -343,6 +411,8 @@ namespace Enterprise.Tests.Linq.Reactive
                         await observer.OnNextAsync(1, ct);
                         await observer.OnNextAsync(null, ct);
                         await observer.OnNextAsync(3, ct);
+
+                        return TestSubscription.Instance;
                     });
 
                     var enumerable = observable.ToAsyncEnumerable();
@@ -469,15 +539,13 @@ namespace Enterprise.Tests.Linq.Reactive
                     cancellationTokenSource.CancelAfter(2000);
                     var cancellationToken = cancellationTokenSource.Token;
 
-                    var source = AsyncObservable.Create<int>(async (o, ct) => 
+                    var source = AsyncObservable.Create<int>(async o => 
                     {
                         var i = 0;
                         while (true)
                         {
-                            ct.ThrowIfCancellationRequested();
-
                             i++;
-                            await o.OnNextAsync(i, ct);
+                            await o.OnNextAsync(i);
                         }
                     });
 
@@ -485,8 +553,8 @@ namespace Enterprise.Tests.Linq.Reactive
 
                     var query =
                         (from item in source
-                        where item < 10
-                        select Convert.ToDouble(item)).Take(5);
+                         where item < 10
+                         select Convert.ToDouble(item)).Take(5);
                     Trace.WriteLine(query, "query");
 
                     using (await query.SubscribeAsync(observer, cancellationToken)) { }
@@ -741,6 +809,109 @@ namespace Enterprise.Tests.Linq.Reactive
 
         [TestMethod]
         [TestCategory("Linq.Reactive")]
+        [TestCategory("Contains")]
+        [TestCategory("Unit")]
+        [Timeout(10000)]
+        public async Task ContainsSimple()
+        {
+            try
+            {
+                var source = AsyncObservable.Create<int>(async observer =>
+                {
+                    for (var i = 1; i < 5; i++)
+                    {
+                        await observer.OnNextAsync(i);
+                    }
+                });
+                Trace.WriteLine(source, "source");
+                using (await source.SubscribeAsync(new TestAsyncObserver<int>())) { }
+
+                var results = AsyncObservable.Create<IAsyncObservable<bool>>(async observer =>
+                {
+                    await observer.OnNextAsync(source.Contains(1));
+                    await observer.OnNextAsync(source.Contains(3));
+                    await observer.OnNextAsync(source.Contains(0));
+                    await observer.OnNextAsync(source.Contains(2));
+                });
+
+                var query =
+                    from result in results
+                    from item in result
+                    select item;
+
+                using (await query.SubscribeAsync(new TestAsyncObserver<bool>())) { }
+
+                var sequenceEqual = false;
+                await query
+                    .SequenceEqual(new[] { true, true, false, true })
+                    .ForEachAsync(x => sequenceEqual = x);
+
+                Assert.IsTrue(sequenceEqual);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive.Infinite")]
+        [TestCategory("Contains")]
+        [TestCategory("Unit")]
+        [Timeout(5000)]
+        public async Task ContainsInfinite()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+
+            try
+            {
+                cancellationTokenSource.CancelAfter(2000);
+                var cancellationToken = cancellationTokenSource.Token;
+
+                var source = AsyncObservable.Create<int>(async observer =>
+                {
+                    for (var i = 1; true; i++)
+                    {
+                        await observer.OnNextAsync(i);
+                    }
+                });
+                Trace.WriteLine(source, "source");
+
+                var results = AsyncObservable.Create<IAsyncObservable<bool>>(async observer =>
+                {
+                    await observer.OnNextAsync(source.Contains(1));
+                    await observer.OnNextAsync(source.Contains(2));
+                    await observer.OnNextAsync(source.Contains(3));
+                });
+
+                var query =
+                    from result in results
+                    from item in result
+                    select item;
+
+                using (await query.SubscribeAsync(new TestAsyncObserver<bool>(), cancellationToken)) { }
+
+                var allTrue = false;
+                await query.All(x => x).ForEachAsync(x => allTrue = x, cancellationToken);
+
+                Assert.IsTrue(allTrue);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+            finally
+            {
+                cancellationTokenSource.Dispose();
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
         [TestCategory("SequenceEqual")]
         [TestCategory("Unit")]
         [Timeout(50000)]
@@ -767,7 +938,7 @@ namespace Enterprise.Tests.Linq.Reactive
 
         [TestMethod]
         [TestCategory("Linq.Reactive")]
-        [TestCategory("ToList")]
+        [TestCategory("Conversions")]
         [TestCategory("Unit")]
         [Timeout(5000)]
         public async Task ToListSimple()

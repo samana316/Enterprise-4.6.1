@@ -29,7 +29,7 @@ namespace Enterprise.Core.Common.ServiceModel
                 return null;
             };
 
-            return operation.InvokeAsync(creator);
+            return overload.InvokeAsync(creator);
         }
 
         public static Task<TResult> InvokeAsync<TChannel, TResult>(

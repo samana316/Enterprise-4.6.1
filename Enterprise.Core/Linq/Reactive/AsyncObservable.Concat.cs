@@ -106,7 +106,7 @@ namespace Enterprise.Core.Linq.Reactive
                 {
                     ct.ThrowIfCancellationRequested();
 
-                    await value.ForEachAsync(observer.OnNextAsync, ct);
+                    await value.SubscribeRawAsync(observer, ct);
                 };
 
                 await this.sources.ForEachAsync(onNextAsync, cancellationToken);

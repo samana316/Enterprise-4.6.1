@@ -14,6 +14,8 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
 
         private readonly ICollection<Exception> errors = new List<Exception>();
 
+        private readonly ICollection<StackTrace> stackTraces = new List<StackTrace>();
+
         public IAsyncEnumerable<T> Items
         {
             get { return this.items.AsAsyncEnumerable(); }
@@ -24,11 +26,18 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
             get { return this.errors.AsAsyncEnumerable(); }
         }
 
+        public IAsyncEnumerable<StackTrace> StackTraces
+        {
+            get { return this.stackTraces.AsAsyncEnumerable(); }
+        }
+
         public bool IsCompleted { get; private set; }
 
         public virtual void OnCompleted()
         {
             this.IsCompleted = true;
+
+            this.stackTraces.Add(new StackTrace());
 
             Trace.WriteLine(DateTime.Now, "OnCompleted");
         }
@@ -36,8 +45,13 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
         public virtual void OnError(
             Exception error)
         {
-            this.errors.Add(error);
+            //var aggregate = error as AggregateException;
+            //if (aggregate != null)
+            //{
+            //    error = error.InnerException ?? error;
+            //}
 
+            this.errors.Add(error);
             Trace.WriteLine(error, "OnError");
         }
 

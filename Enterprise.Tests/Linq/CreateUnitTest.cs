@@ -337,8 +337,12 @@ namespace Enterprise.Tests.Linq
                     where x % 2 == 0
                     select new int?(x);
 
-                Trace.WriteLine(
-                    JsonConvert.SerializeObject(result));
+                var json = JsonConvert.SerializeObject(result, Formatting.Indented);
+                var result2 = JsonConvert.DeserializeObject(json);
+                var json2 = JsonConvert.SerializeObject(result2, Formatting.Indented);
+
+                Trace.WriteLine(json2, result2.GetType().AssemblyQualifiedName);
+                Assert.AreEqual(json, json2);
             }
             catch (Exception exception)
             {

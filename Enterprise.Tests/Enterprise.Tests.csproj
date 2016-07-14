@@ -92,6 +92,8 @@
     <Compile Include="Linq\Reactive\GroupByUnitTest.cs" />
     <Compile Include="Linq\Reactive\Helpers\DataReaderObservable.cs" />
     <Compile Include="Linq\Reactive\Helpers\TestAsyncObserver.cs" />
+    <Compile Include="Linq\Reactive\Helpers\TestSubscription.cs" />
+    <Compile Include="Linq\Reactive\IntegrationTest.cs" />
     <Compile Include="Linq\Reactive\JoinsUnitTest.cs" />
     <Compile Include="Linq\Reactive\PagingOperationsUnitTest.cs" />
     <Compile Include="Linq\Reactive\SeekOperationsUnitTest.cs" />
@@ -110,6 +112,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Temp\CodeGeneration.cs" />
     <Compile Include="Temp\CustomAwaitableTest.cs" />
+    <Compile Include="Temp\DelegateTest.cs" />
     <Compile Include="Temp\ObservableTest.cs" />
     <Compile Include="Temp\PauseTokenTest.cs" />
     <Compile Include="Temp\TaskTest.cs" />

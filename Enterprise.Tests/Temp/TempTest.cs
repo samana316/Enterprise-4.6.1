@@ -150,6 +150,48 @@ namespace Enterprise.Tests.Temp
 
         [TestMethod]
         [TestCategory("Temp")]
+        [Timeout(5000)]
+        public async Task TempAsyncTest3()
+        {
+            try
+            {
+                IDisposable obj = null;
+
+                using (var source = new CancellationTokenSource(1000))
+                {
+                    try
+                    {
+                        obj = await this.TempMethodAsync(source.Token);
+                    }
+                    finally
+                    {
+                        Trace.WriteLine(obj.GetType().AssemblyQualifiedName);
+                    }
+                }
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        private async Task<IDisposable> TempMethodAsync(
+            CancellationToken cancellationToken)
+        {
+            var task = Console.Out.WriteLineAsync("OnNext");
+
+            for (var i = 0; true; i++)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                await task;
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Temp")]
         [Timeout(10000)]
         public async Task TempParallelAsyncTest()
         {

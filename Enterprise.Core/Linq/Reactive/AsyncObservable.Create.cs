@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Enterprise.Core.Common;
 using Enterprise.Core.Utilities;
 
 namespace Enterprise.Core.Linq.Reactive
@@ -53,22 +52,11 @@ namespace Enterprise.Core.Linq.Reactive
                 this.subscribeAsync = subscribeAsync;
             }
 
-            protected override async Task<IDisposable> SubscribeCoreAsync(
+            protected override Task<IDisposable> SubscribeCoreAsync(
                 IAsyncObserver<T> observer, 
                 CancellationToken cancellationToken)
             {
-                var subscription = await this.subscribeAsync(observer, cancellationToken);
-
-                return subscription ?? EmptyDisposable.Instance;
-            }
-        }
-
-        private sealed class EmptyDisposable : DisposableBase
-        {
-            public static readonly IDisposable Instance = new EmptyDisposable();
-
-            private EmptyDisposable()
-            {
+                return this.subscribeAsync(observer, cancellationToken);
             }
         }
     }
