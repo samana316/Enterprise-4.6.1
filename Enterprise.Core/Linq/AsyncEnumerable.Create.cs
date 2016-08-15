@@ -113,7 +113,7 @@ namespace Enterprise.Core.Linq
 
             private sealed class Consumer<TResult> : IAsyncYielder<TResult>
             {
-                private const double delay = 1;
+                private const double delay = 0.5;
 
                 public Consumer(
                     PauseTokenSource pauseTokenSource)

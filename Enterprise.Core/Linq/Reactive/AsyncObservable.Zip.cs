@@ -129,7 +129,7 @@ namespace Enterprise.Core.Linq.Reactive
                 }
             }
 
-            private sealed class ZipAsyncObservableImpl
+            private sealed class ZipAsyncObservableImpl : IProducer
             {
                 private ZipAsyncObservable<TFirst, TSecond, TResult> parent;
 

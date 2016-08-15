@@ -48,6 +48,18 @@
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Reactive.Core, Version=3.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Core.3.0.0\lib\net46\System.Reactive.Core.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Interfaces, Version=3.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Interfaces.3.0.0\lib\net45\System.Reactive.Interfaces.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
+    <Reference Include="System.Reactive.Linq, Version=3.0.0.0, Culture=neutral, PublicKeyToken=94bc3704cddfc263, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Reactive.Linq.3.0.0\lib\net46\System.Reactive.Linq.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.ServiceModel" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
@@ -67,6 +79,7 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Helpers\Data\TestDbDataReader.cs" />
     <Compile Include="IO\AsyncFileTest.cs" />
     <Compile Include="Linq\AggregateAsyncTest.cs" />
     <Compile Include="Linq\CompareLinqMethods.cs" />
@@ -87,8 +100,11 @@
     <Compile Include="Linq\Reactive\AggregateFunctionsUnitTest.cs" />
     <Compile Include="Linq\Reactive\AsyncObservablePoc.cs" />
     <Compile Include="Linq\Reactive\AsyncObservableTest.cs" />
+    <Compile Include="Linq\Reactive\CatchUnitTest.cs" />
     <Compile Include="Linq\Reactive\ConcatUnitTest.cs" />
     <Compile Include="Linq\Reactive\ConversionsUnitTest.cs" />
+    <Compile Include="Linq\Reactive\DeferUnitTest.cs" />
+    <Compile Include="Linq\Reactive\DuckTypingUnitTest.cs" />
     <Compile Include="Linq\Reactive\ForEachAsyncUnitTest.cs" />
     <Compile Include="Linq\Reactive\GroupByUnitTest.cs" />
     <Compile Include="Linq\Reactive\Helpers\DataReaderObservable.cs" />
@@ -96,6 +112,7 @@
     <Compile Include="Linq\Reactive\Helpers\TestSubscription.cs" />
     <Compile Include="Linq\Reactive\IntegrationTest.cs" />
     <Compile Include="Linq\Reactive\JoinsUnitTest.cs" />
+    <Compile Include="Linq\Reactive\MixedParadigmTest.cs" />
     <Compile Include="Linq\Reactive\PagingOperationsUnitTest.cs" />
     <Compile Include="Linq\Reactive\SeekOperationsUnitTest.cs" />
     <Compile Include="Linq\Reactive\SelectManyUnitTest.cs" />

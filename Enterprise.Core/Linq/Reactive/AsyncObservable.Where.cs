@@ -49,7 +49,7 @@ namespace Enterprise.Core.Linq.Reactive
             {
                 var whereImpl = new WhereAsyncObserver(this, observer);
 
-                return this.source.SubscribeSafeAsync(whereImpl, cancellationToken);
+                return this.source.SubscribeRawAsync(whereImpl, cancellationToken);
             }
 
             private sealed class WhereAsyncObserver : AsyncSink<TSource>

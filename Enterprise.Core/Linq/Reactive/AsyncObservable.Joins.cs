@@ -114,7 +114,7 @@ namespace Enterprise.Core.Linq.Reactive
                 return joinImpl.RunAsync(cancellationToken);
             }
 
-            private sealed class JoinAsyncImpl
+            private sealed class JoinAsyncImpl : IProducer
             {
                 private readonly JoinAsyncObservable<TLeft, TRight, TLeftDuration, TRightDuration, TResult> parent;
 

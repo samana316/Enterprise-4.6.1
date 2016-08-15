@@ -70,5 +70,32 @@ namespace Enterprise.Tests.Linq.Reactive
                 Assert.Fail(exception.Message);
             }
         }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("SetOperations")]
+        [TestCategory("Unit")]
+        [Timeout(5000)]
+        public async Task DistinctUntilChangedSimple()
+        {
+            try
+            {
+                var enumerable = new[] { 1, 2, 2, 3, 3, 3, 2, 1 };
+                var observable = enumerable.ToAsyncObservable();
+                var query = observable.DistinctUntilChanged();
+
+                var observer = new TestAsyncObserver<int>();
+                using (await query.SubscribeAsync(observer)) { }
+
+                Assert.IsTrue(
+                    await observer.Items.SequenceEqualAsync(new[] { 1, 2, 3, 2, 1 }));
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
     }
 }

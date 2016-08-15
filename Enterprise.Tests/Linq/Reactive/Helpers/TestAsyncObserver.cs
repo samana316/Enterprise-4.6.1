@@ -10,6 +10,8 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
 {
     internal class TestAsyncObserver<T> : IAsyncObserver<T>
     {
+        private readonly Guid instanceId = Guid.NewGuid();
+
         private readonly ICollection<T> items = new List<T>();
 
         private readonly ICollection<Exception> errors = new List<Exception>();
@@ -40,6 +42,7 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
             this.stackTraces.Add(new StackTrace());
 
             Trace.WriteLine(DateTime.Now, "OnCompleted");
+            Trace.WriteLine(this.instanceId, "InstanceId");
         }
 
         public virtual void OnError(
@@ -65,15 +68,17 @@ namespace Enterprise.Tests.Linq.Reactive.Helpers
 
             return Console.Out.WriteLineAsync(
                 string.Format(
-                    "OnNextAsync {0}: {1}",
+                    "OnNextAsync {0}: {1}, InstanceId: {2}",
                     value,
-                    DateTime.Now));
+                    DateTime.Now,
+                    this.instanceId));
         }
 
         public void Reset()
         {
             this.items.Clear();
             this.errors.Clear();
+            this.stackTraces.Clear();
             this.IsCompleted = false;
         }
     }

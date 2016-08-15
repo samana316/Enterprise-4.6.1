@@ -65,6 +65,46 @@ namespace Enterprise.Core.Linq.Reactive
             return new DistinctAsyncObservable<TSource, TKey>(source, keySelector, comparer);
         }
 
+        public static IAsyncObservable<TSource> DistinctUntilChanged<TSource>(
+            this IAsyncObservable<TSource> source)
+        {
+            Check.NotNull(source, "source");
+
+            return new DistinctUntilChangedAsyncObservable<TSource, TSource>(source, IdentityFunction, null);
+        }
+
+        public static IAsyncObservable<TSource> DistinctUntilChanged<TSource>(
+            this IAsyncObservable<TSource> source,
+            IEqualityComparer<TSource> comparer)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(comparer, "comparer");
+
+            return new DistinctUntilChangedAsyncObservable<TSource, TSource>(source, IdentityFunction, comparer);
+        }
+
+        public static IAsyncObservable<TSource> DistinctUntilChanged<TSource, TKey>(
+            this IAsyncObservable<TSource> source,
+            Func<TSource, TKey> keySelector)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(keySelector, "keySelector");
+
+            return new DistinctUntilChangedAsyncObservable<TSource, TKey>(source, keySelector, null);
+        }
+
+        public static IAsyncObservable<TSource> DistinctUntilChanged<TSource, TKey>(
+            this IAsyncObservable<TSource> source,
+            Func<TSource, TKey> keySelector,
+            IEqualityComparer<TKey> comparer)
+        {
+            Check.NotNull(source, "source");
+            Check.NotNull(keySelector, "keySelector");
+            Check.NotNull(comparer, "comparer");
+
+            return new DistinctUntilChangedAsyncObservable<TSource, TKey>(source, keySelector, comparer);
+        }
+
         private sealed class DefaultIfEmptyAsyncObservable<TSource> : AsyncObservableBase<TSource>
         {
             private readonly IAsyncObservable<TSource> source;
@@ -179,6 +219,74 @@ namespace Enterprise.Core.Linq.Reactive
 
                     if (flag)
                     {
+                        await this.observer.OnNextAsync(value, cancellationToken);
+                    }
+                }
+            }
+        }
+
+        private sealed class DistinctUntilChangedAsyncObservable<TSource, TKey> : AsyncObservableBase<TSource>
+        {
+            private readonly IAsyncObservable<TSource> source;
+
+            private readonly Func<TSource, TKey> keySelector;
+
+            private readonly IEqualityComparer<TKey> comparer;
+
+            public DistinctUntilChangedAsyncObservable(
+                IAsyncObservable<TSource> source,
+                Func<TSource, TKey> keySelector,
+                IEqualityComparer<TKey> comparer)
+            {
+                this.source = source;
+                this.keySelector = keySelector;
+                this.comparer = comparer ?? EqualityComparer<TKey>.Default;
+            }
+
+            protected override Task<IDisposable> SubscribeCoreAsync(
+                IAsyncObserver<TSource> observer,
+                CancellationToken cancellationToken)
+            {
+                var DistinctUntilChangedImpl = new DistinctUntilChangedAsyncObserver(this, observer);
+
+                return this.source.SubscribeSafeAsync(DistinctUntilChangedImpl, cancellationToken);
+            }
+
+            private sealed class DistinctUntilChangedAsyncObserver : AsyncSink<TSource>
+            {
+                private readonly DistinctUntilChangedAsyncObservable<TSource, TKey> parent;
+
+                private readonly IAsyncObserver<TSource> observer;
+
+                private TKey currentKey;
+
+                private bool hasCurrentKey;
+
+                public DistinctUntilChangedAsyncObserver(
+                    DistinctUntilChangedAsyncObservable<TSource, TKey> parent,
+                    IAsyncObserver<TSource> observer)
+                    : base(observer.AsPartial())
+                {
+                    this.parent = parent;
+                    this.observer = observer;
+                }
+
+                protected override async Task OnNextCoreAsync(
+                    TSource value,
+                    CancellationToken cancellationToken)
+                {
+                    var key = this.parent.keySelector(value);
+                    var flag = false;
+
+                    if (this.hasCurrentKey)
+                    {
+                        flag = this.parent.comparer.Equals(this.currentKey, key);
+                    }
+
+                    if (!this.hasCurrentKey || !flag)
+                    {
+                        this.hasCurrentKey = true;
+                        this.currentKey = key;
                         await this.observer.OnNextAsync(value, cancellationToken);
                     }
                 }

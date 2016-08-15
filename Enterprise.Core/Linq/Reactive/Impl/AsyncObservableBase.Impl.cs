@@ -69,7 +69,7 @@ namespace Enterprise.Core.Linq.Reactive
             return EmptyDisposable.Instance;
         }
 
-        private sealed class Consumer : AsyncObserverBase<T>
+        private sealed class Consumer : AsyncObserverBase<T>, IProducer
         {
             private readonly AsyncObservableBase<T> source;
 

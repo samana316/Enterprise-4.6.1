@@ -6,6 +6,18 @@ namespace Enterprise.Core.Linq.Reactive
 {
     partial class AsyncObservable
     {
+        public static IAsyncObservable<long> Interval(
+            TimeSpan period)
+        {
+            return new TimerAsyncObservable(period);
+        }
+
+        public static IAsyncObservable<long> Timer(
+            TimeSpan dueTime)
+        {
+            return new TimerAsyncObservable(dueTime);
+        }
+
         public static IAsyncObservable<long> Timer(
             TimeSpan dueTime,
             TimeSpan period)
@@ -21,12 +33,21 @@ namespace Enterprise.Core.Linq.Reactive
 
             private readonly TimeSpan period;
 
+            private bool condition;
+
+            public TimerAsyncObservable(
+                TimeSpan dueTime)
+            {
+                this.dueTime = dueTime;
+            }
+
             public TimerAsyncObservable(
                 TimeSpan dueTime, 
                 TimeSpan period)
             {
                 this.dueTime = dueTime;
                 this.period = period;
+                this.condition = true;
             }
 
             protected override async Task<IDisposable> SubscribeCoreAsync(
@@ -39,9 +60,8 @@ namespace Enterprise.Core.Linq.Reactive
 
                 await Task.Delay(this.dueTime, cancellationToken);
                 await observer.OnNextAsync(count, cancellationToken);
-
-                var condition = true;
-                while (condition)
+                
+                while (this.condition)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 

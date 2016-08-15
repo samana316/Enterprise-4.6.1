@@ -257,6 +257,29 @@ namespace Enterprise.Tests.Linq.Reactive
         [TestCategory("Linq.Reactive")]
         [TestCategory("SeekOperations")]
         [TestCategory("Unit")]
+        public async Task LastNested()
+        {
+            try
+            {
+                var observable = AsyncObservable.Range(1, 5);
+                var query = observable.Last();
+                var result = await query;
+
+                Trace.WriteLine(result);
+                Assert.AreEqual(5, result);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Linq.Reactive")]
+        [TestCategory("SeekOperations")]
+        [TestCategory("Unit")]
         public async Task SingleSimple()
         {
             try

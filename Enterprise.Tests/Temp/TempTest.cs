@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -177,6 +178,36 @@ namespace Enterprise.Tests.Temp
             }
         }
 
+        [TestMethod]
+        [TestCategory("Temp")]
+        [Timeout(5000)]
+        public async Task TempAsyncTest4()
+        {
+            try
+            {
+                var random = new Random();
+                Func<int, Task> funcAsync = async (x) =>
+                {
+                    await Task.Yield();
+                    await Task.Delay(200);
+                    await Console.Out.WriteLineAsync(x.ToString());
+                };
+
+                var source = Enumerable.Range(1, 9);
+                var tasks =
+                    from item in source
+                    select funcAsync(item);
+
+                await Task.WhenAll(tasks);
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
         private async Task<IDisposable> TempMethodAsync(
             CancellationToken cancellationToken)
         {
@@ -258,6 +289,29 @@ namespace Enterprise.Tests.Temp
                 var task = method.Invoke(this, new object[] { "Test1234" }) as Task;
 
                 await task;
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Temp")]
+        [Timeout(10000)]
+        public async Task TempExpressionAsyncTest()
+        {
+            try
+            {
+                Expression<Func<Task<int>>> expression = () => Task.FromResult(1);
+
+                var funcAsync = expression.Compile();
+
+                var result = await funcAsync();
+
+                Trace.WriteLine(result);
             }
             catch (Exception exception)
             {

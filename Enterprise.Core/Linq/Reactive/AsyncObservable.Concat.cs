@@ -91,7 +91,7 @@ namespace Enterprise.Core.Linq.Reactive
                     while (await enumerator.MoveNextAsync(cancellationToken))
                     {
                         var source = enumerator.Current;
-                        Check.NotNull(source, "source");
+                        source = Check.NotNull(source, "source");
 
                         await source.ForEachAsync(observer.OnNextAsync, cancellationToken);
                     }

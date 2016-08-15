@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Reactive.Linq;
 using System.Reflection;
 using System.Threading;
 using Enterprise.Core.Common.Collections.Extensions;
@@ -46,7 +47,7 @@ namespace Enterprise.Tests.Linq
         {
             try
             {
-                var linqMethods = this.GetLinqMethods(typeof(Enumerable));
+                var linqMethods = this.GetLinqMethods(typeof(Observable));
                 var asyncLinqMethods = this.GetLinqMethods(typeof(AsyncObservable));
 
                 var query = linqMethods.Except(asyncLinqMethods);

@@ -55,7 +55,7 @@ namespace Enterprise.Tests.Linq.Reactive
                 var countExpected = 12;
                 var observer = new TestAsyncObserver<object>();
 
-                using (await query.SubscribeAsync(observer)) { };
+                using (await query.SubscribeSafeAsync(observer)) { };
 
                 //Assert.AreEqual(countExpected, observer.Items.Count());
             }
