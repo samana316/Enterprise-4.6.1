@@ -16,7 +16,23 @@ namespace Enterprise.Core.Linq
 
             Func<TSource, int, bool> overload = (item, index) => predicate(item);
 
-            return new WhereAsyncIterator<TSource>(source, overload);
+            //return new WhereAsyncIterator<TSource>(source, overload);
+
+            return Create<TSource>(async (yielder, cancellationToken) =>
+            {
+                using (var enumerator = source.GetAsyncEnumerator())
+                {
+                    while (await enumerator.MoveNextAsync(cancellationToken))
+                    {
+                        if (predicate(enumerator.Current))
+                        {
+                            await yielder.ReturnAsync(enumerator.Current, cancellationToken);
+                        }
+                    }
+                }
+
+                await yielder.BreakAsync(cancellationToken);
+            });
         }
 
         public static IAsyncEnumerable<TSource> Where<TSource>(
@@ -26,7 +42,26 @@ namespace Enterprise.Core.Linq
             Check.NotNull(source, "source");
             Check.NotNull(predicate, "predicate");
 
-            return new WhereAsyncIterator<TSource>(source, predicate);
+            return Create<TSource>(async (yielder, cancellationToken) =>
+            {
+                var index = -1;
+                using (var enumerator = source.GetAsyncEnumerator())
+                {
+                    while (await enumerator.MoveNextAsync(cancellationToken))
+                    {
+                        index++;
+
+                        if (predicate(enumerator.Current, index))
+                        {
+                            await yielder.ReturnAsync(enumerator.Current, cancellationToken);
+                        }
+                    }
+                }
+
+                await yielder.BreakAsync(cancellationToken);
+            });
+
+            //return new WhereAsyncIterator<TSource>(source, predicate);
         }
 
         private class WhereAsyncIterator<TSource> : AsyncIterator<TSource>

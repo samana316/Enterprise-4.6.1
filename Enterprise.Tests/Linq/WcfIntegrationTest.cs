@@ -12,7 +12,7 @@ namespace Enterprise.Tests.Linq
     [TestClass]
     public class WcfIntegrationTest
     {
-        [TestMethod]
+       // [TestMethod]
         [TestCategory("Linq")]
         [TestCategory("WhereSelect")]
         [TestCategory("Integration")]

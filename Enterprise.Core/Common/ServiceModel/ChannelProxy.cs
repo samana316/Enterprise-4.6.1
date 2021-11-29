@@ -7,6 +7,47 @@ namespace Enterprise.Core.Common.ServiceModel
 {
     public static class ChannelProxy
     {
+        public static TResult Invoke<TChannel, TResult>(
+           this Func<TChannel, TResult> operation)
+        {
+            Check.NotNull(operation, "operation");
+
+            return Invoke(operation, CreateDefault<TChannel>);
+        }
+
+        public static TResult Invoke<TChannel, TResult>(
+           this Func<TChannel, TResult> operation,
+           Func<ChannelFactory<TChannel>> creator)
+        {
+            Check.NotNull(operation, "operation");
+            Check.NotNull(creator, "creator");
+
+            var factory = creator();
+
+            try
+            {
+                var channel = factory.CreateChannel();
+
+                try
+                {
+                    return operation(channel);
+                }
+                finally
+                {
+                    var disposable = channel as IDisposable;
+
+                    if (disposable != null)
+                    {
+                        disposable.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                factory.CloseOrAbort();
+            }
+        }
+
         public static Task InvokeAsync<TChannel>(
             this Func<TChannel, Task> operation)
         {

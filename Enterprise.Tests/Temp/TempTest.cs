@@ -6,9 +6,11 @@ using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Enterprise.Core.Common.Threading.Tasks;
+using Enterprise.Core.IO;
 using Enterprise.Core.Linq;
 using Enterprise.Core.Linq.Providers;
 using Enterprise.Core.Linq.Reactive;
@@ -328,16 +330,12 @@ namespace Enterprise.Tests.Temp
         {
             try
             {
-                Trace.Write(long.MaxValue);
-                //bool isDebuggerPresent = false;
-                //CheckRemoteDebuggerPresent(Process.GetCurrentProcess().Handle, ref isDebuggerPresent);
+                var dt1 = DateTime.Parse("2015-01-19 06:50:59.350");
+                var dt2 = DateTime.Now;
 
-                //var isDebuggerAttached = Debugger.IsAttached;
+                var span = dt2 - dt1;
 
-                //Trace.WriteLine(isDebuggerPresent);
-                //Trace.WriteLine(isDebuggerAttached);
-
-                //await Task.Yield();
+                Trace.WriteLine(span.TotalSeconds);
             }
             catch (Exception exception)
             {
@@ -379,6 +377,33 @@ namespace Enterprise.Tests.Temp
                 Trace.WriteLine("await task");
 
                 await task.ContinueWith(async t => Trace.WriteLine(await t));
+            }
+            catch (Exception exception)
+            {
+                Trace.WriteLine(exception);
+
+                Assert.Fail(exception.Message);
+            }
+            finally
+            {
+                cancellationTokenSource.Dispose();
+            }
+        }
+
+        [TestMethod]
+        [TestCategory("Temp")]
+        [Timeout(10000)]
+        public async Task TempAsyncIOTest2()
+        {
+            var cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.CancelAfter(10000);
+            var cancellationToken = cancellationTokenSource.Token;
+
+            try
+            {
+                var task = AsyncFile.ReadAllTextAsync(@"C:\Temp\AsyncError1.txt", cancellationToken);
+
+                await task;
             }
             catch (Exception exception)
             {

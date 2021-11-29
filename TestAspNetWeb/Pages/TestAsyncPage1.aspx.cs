@@ -49,7 +49,7 @@ namespace TestAspNetWeb.Pages
             {
                 cancellationTokenSource.CancelAfter(5000);
 
-                await this.DisplayTextAsync(this.Label2, 1, cancellationTokenSource.Token);
+                await this.DisplayTextAsync(this.Label2, 100, cancellationTokenSource.Token);
             }
         }
 

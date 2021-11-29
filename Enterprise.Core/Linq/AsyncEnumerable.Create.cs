@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Enterprise.Core.Common.Runtime.ExceptionServices;
 using Enterprise.Core.Common.Threading;
 using Enterprise.Core.Common.Threading.Tasks;
 
@@ -34,25 +35,27 @@ namespace Enterprise.Core.Linq
         {
             private readonly Func<IAsyncYielder<TSource>, CancellationToken, Task> yieldBuilder;
 
-            private readonly PauseTokenSource pauseTokenSource = new PauseTokenSource();
-
-            private readonly Consumer<TSource> consumer;
-
-            private Task currentTask;
+            private Consumer _yield;
+            private TSource _current;
+            private Task _enumerationTask;
+            private Exception _enumerationException;
 
             public AnonymousAsyncIterator(
                 Func<IAsyncYielder<TSource>, CancellationToken, Task> yieldBuilder)
             {
-                if (yieldBuilder == null)
-                    throw new ArgumentNullException("yieldBuilder");
-
                 this.yieldBuilder = yieldBuilder;
-                this.consumer = new Consumer<TSource>(this.pauseTokenSource);
+
+                ClearState();
             }
 
             public override TSource Current
             {
-                get { return this.consumer.Current; }
+                get
+                {
+                    if (_enumerationTask == null)
+                        throw new InvalidOperationException("Call MoveNext() or MoveNextAsync() before accessing the Current item");
+                    return _current;
+                }
             }
 
             public override AsyncIterator<TSource> Clone()
@@ -60,122 +63,160 @@ namespace Enterprise.Core.Linq
                 return new AnonymousAsyncIterator<TSource>(this.yieldBuilder);
             }
 
+            protected override void Dispose(
+                bool disposing)
+            {
+                ClearState();
+
+                base.Dispose(disposing);
+            }
+
             public override void Reset()
             {
-                this.currentTask = null;
-                this.consumer.Reset();
+                ClearState();
 
                 base.Reset();
             }
 
-            protected override async Task<bool> DoMoveNextAsync(
+            protected override Task<bool> DoMoveNextAsync(
                 CancellationToken cancellationToken)
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                if (this.currentTask == null)
+                if (_enumerationException != null)
                 {
-                    this.pauseTokenSource.IsPaused = true;
-                    this.currentTask = this.yieldBuilder(this.consumer, cancellationToken)
-                        .ContinueWith(t => this.consumer.BreakAsync(cancellationToken));
+                    var tcs = new TaskCompletionSource<bool>();
+                    tcs.SetException(_enumerationException);
+                    return tcs.Task;
                 }
-                else
-                {
-                    this.ValidateCurrentTaskStatus();
-                }
-
-                if (this.pauseTokenSource.IsPaused)
-                {
-                    await this.pauseTokenSource.Token.WaitWhilePausedAsync(cancellationToken);
-                    this.pauseTokenSource.IsPaused = true;
-                }
-
-                return this.consumer.HasValue;
+                var moveNextTask = _yield.OnMoveNext(cancellationToken).ContinueWith(OnMoveNextComplete, _yield);
+                if (_enumerationTask == null)
+                    _enumerationTask = this.yieldBuilder(_yield, cancellationToken).ContinueWith(OnEnumerationComplete, _yield);
+                return moveNextTask;
             }
 
-            private void ValidateCurrentTaskStatus()
+            private void ClearState()
             {
-                if (this.currentTask.Status == TaskStatus.RanToCompletion)
-                {
-                    this.pauseTokenSource.IsPaused = false;
-                }
+                if (_yield != null)
+                    _yield.Finilize();
 
-                if (this.currentTask.Status == TaskStatus.Canceled)
-                {
-                    throw new TaskCanceledException();
-                }
-
-                if (this.currentTask.Status == TaskStatus.Faulted)
-                {
-                    throw new AggregateException(this.currentTask.Exception.InnerExceptions);
-                }
+                _yield = new Consumer();
+                _enumerationTask = null;
+                _enumerationException = null;
             }
 
-            private sealed class Consumer<TResult> : IAsyncYielder<TResult>
+            private bool OnMoveNextComplete(
+                Task<TSource> task, 
+                object state)
             {
-                private const double delay = 0.5;
-
-                public Consumer(
-                    PauseTokenSource pauseTokenSource)
+                var yield = (Consumer)state;
+                if (yield.IsComplete)
                 {
-                    this.CurrentIndex = -1;
-                    this.PauseTokenSource = pauseTokenSource;
+                    return false;
                 }
 
-                public TResult Current { get; private set; }
-
-                public bool HasValue { get; private set; }
-
-                public int CurrentIndex { get; private set; }
-
-                internal PauseTokenSource PauseTokenSource { get; set; }
-
-                public async Task ReturnAsync(
-                    TResult value,
-                    CancellationToken cancellationToken)
+                if (task.IsFaulted)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    _enumerationException = task.Exception;
+                    _enumerationException.Rethrow();
+                }
+                else if (task.IsCanceled)
+                {
+                    return false;
+                }
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationToken);
-                    if (this.HasValue)
+                _current = task.Result;
+                return true;
+            }
+
+            private static void OnEnumerationComplete(
+                Task task, 
+                object state)
+            {
+                var yield = (Consumer)state;
+                if (task.IsFaulted)
+                {
+                    if (task.Exception is AsyncEnumerationCanceledException)
                     {
-                        throw new InvalidOperationException(
-                            "Yielded additional value before MoveNext(). This is probably caused by a missing await.");
+                        yield.SetCanceled();
                     }
-
-                    this.Current = value;
-                    this.CurrentIndex++;
-
-                    var tcs = new TaskCompletionSource<TResult>();
-                    tcs.SetResult(value);
-
-                    this.HasValue = true;
-
-                    await tcs.Task
-                        .ContinueWith(t => this.PauseTokenSource.IsPaused = false)
-                        .ContinueWith(t => this.HasValue = false);
+                    else {
+                        yield.SetFailed(task.Exception);
+                    }
                 }
+                else if (task.IsCanceled)
+                {
+                    yield.SetCanceled();
+                }
+                else {
+                    yield.SetComplete();
+                }
+            }
+
+            private sealed class AsyncEnumerationCanceledException : OperationCanceledException { }
+
+            private sealed class Consumer : IAsyncYielder<TSource>
+            {
+                private TaskCompletionSource<bool> _resumeTCS;
+                private TaskCompletionSource<TSource> _yieldTCS = new TaskCompletionSource<TSource>();
+
+                public CancellationToken CancellationToken { get; private set; }
 
                 public async Task BreakAsync(
                     CancellationToken cancellationToken)
                 {
+                    await Task.Yield();
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    await Task.Delay(TimeSpan.FromMilliseconds(delay), cancellationToken);
-                    this.HasValue = false;
-
-                    var tcs = new TaskCompletionSource<object>();
-                    tcs.SetResult(null);
-
-                    await tcs.Task
-                        .ContinueWith(t => this.PauseTokenSource.IsPaused = false)
-                        .ContinueWith(t => this.HasValue = false);
+                    SetCanceled();
+                    throw new AsyncEnumerationCanceledException();
                 }
 
-                public void Reset()
+                public Task ReturnAsync(
+                    TSource value, 
+                    CancellationToken cancellationToken)
                 {
-                    this.CurrentIndex = -1;
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    _resumeTCS = new TaskCompletionSource<bool>();
+                    _yieldTCS.TrySetResult(value);
+                    return _resumeTCS.Task;
                 }
+
+                internal void SetComplete()
+                {
+                    _yieldTCS.TrySetCanceled();
+                    IsComplete = true;
+                }
+
+                internal void SetCanceled()
+                {
+                    SetComplete();
+                }
+
+                internal void SetFailed(Exception ex)
+                {
+                    _yieldTCS.TrySetException(ex);
+                    IsComplete = true;
+                }
+
+                internal Task<TSource> OnMoveNext(
+                    CancellationToken cancellationToken)
+                {
+                    if (!IsComplete)
+                    {
+                        _yieldTCS = new TaskCompletionSource<TSource>();
+                        CancellationToken = cancellationToken;
+                        if (_resumeTCS != null)
+                            _resumeTCS.SetResult(true);
+                    }
+                    return _yieldTCS.Task;
+                }
+
+                internal void Finilize()
+                {
+                    SetCanceled();
+                }
+
+                internal bool IsComplete { get; set; }
             }
         }
 

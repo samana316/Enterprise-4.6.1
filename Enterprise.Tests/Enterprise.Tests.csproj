@@ -61,6 +61,7 @@
       <Private>True</Private>
     </Reference>
     <Reference Include="System.ServiceModel" />
+    <Reference Include="System.ServiceProcess" />
     <Reference Include="System.Transactions" />
     <Reference Include="System.Xml" />
   </ItemGroup>
@@ -136,6 +137,7 @@
     <Compile Include="Temp\TaskTest.cs" />
     <Compile Include="Temp\TempDisposableTest.cs" />
     <Compile Include="Temp\TempTest.cs" />
+    <Compile Include="Temp\TempWcfTest.cs" />
     <Compile Include="Transactions\SimpleTransactionalCollection.cs" />
     <Compile Include="Transactions\TransactionalCommandTest.cs" />
     <Compile Include="Transactions\SimpleTransactionalEntity.cs" />
